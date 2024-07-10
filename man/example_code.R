@@ -41,7 +41,7 @@ example_cytof_data = hafez::example_cytof_data %>%
 ############################################################
 ## DBPN: density based pseudotime normalization
 ############################################################
-example_cytof_data = DBPN(dataset = example_cytof_data, dataset.subset_to_use = example_cytof_data %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'pseudotime',adjust.value = 0.5)
+example_cytof_data = hafez_DBPN(dataset = example_cytof_data, dataset.subset_to_use = example_cytof_data %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'pseudotime',adjust.value = 0.5)
 
 ggplot(example_cytof_data, aes(x = PSEUDOTIME_NORMALIZED, y = pseudotime))+
      theme_bw() +
@@ -104,21 +104,37 @@ ggplot(dif_res_by_ct , aes(x = estimate, y = minus_log10padj, color = condition)
      ggrepel::geom_text_repel(data =dif_res_by_ct %>% dplyr::filter(abs(estimate)>=0.5, padj<=0.1), aes(label = feature), size = 2.5) +
      facet_wrap(~pseudotime_bins)
 
-## differential analysis can also  be used to compare conditions directly
-dif_res_by_ct = hafez::differential_analysis_program(glm_input = glm_input ,outcome_features = features_cellcycle, contrast_variables = 'condition',intercept = TRUE,contrast_method = 'emm',
-                                                     SPLIT_BY_NAMES = c( 'pseudotime_bins'))
-dif_res_by_ct_filt = dif_res_by_ct %>%
-     dplyr::filter(condition1 =='WT'|condition2 == 'WT')
-ggplot(dif_res_by_ct_filt , aes(x = estimate, y = minus_log10padj, color = condition_comparison))+
-     geom_point()+
-     geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
-     geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
-     ggrepel::geom_text_repel(data =dif_res_by_ct_filt %>% dplyr::filter(abs(estimate)>=0.5, padj<=0.1), aes(label = feature), size = 2.5) +
-     facet_wrap(~pseudotime_bins)
+## omit this in future iteration
+# ## differential analysis can also  be used to compare conditions directly
+# dif_res_by_ct = hafez::differential_analysis_program(glm_input = glm_input ,outcome_features = features_cellcycle, contrast_variables = 'condition',intercept = TRUE,contrast_method = 'emm',
+#                                                      SPLIT_BY_NAMES = c( 'pseudotime_bins'))
+# dif_res_by_ct_filt = dif_res_by_ct %>%
+#      dplyr::filter(condition1 =='WT'|condition2 == 'WT')
+# ggplot(dif_res_by_ct_filt , aes(x = estimate, y = minus_log10padj, color = condition_comparison))+
+#      geom_point()+
+#      geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
+#      geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
+#      ggrepel::geom_text_repel(data =dif_res_by_ct_filt %>% dplyr::filter(abs(estimate)>=0.5, padj<=0.1), aes(label = feature), size = 2.5) +
+#      facet_wrap(~pseudotime_bins)
 
 
+##################################################################################
+## perform hafez landmark processing and trajectory inference
+##################################################################################
+# start=Sys.time()
+hafez_input =  hafez::example_cytof_data
+hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
+features_pc=paste0('PC',1:6)
+hafez_output = hafez_TI(FULL_DATA = hafez_input,
+         features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,
+         features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F,
+         PERFORM_OOS = FALSE, OOS_idx = landmark_dr2 %>% ungroup(), return_node_pos = F )
 
-
+meelad_res_oos_PCA = hafez_TI(FULL_DATA = landmark_dr2,
+                              features = features_pc[1:6],NumNodes =5,lambda = 0.01,mu = 0.01,
+                              features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',
+                              PERFORM_OOS = FALSE, OOS_idx = landmark_dr2 %>% ungroup(), return_node_pos = F )
+# end=Sys.time()
 
 
 #
