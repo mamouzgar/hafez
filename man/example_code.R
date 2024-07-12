@@ -18,7 +18,7 @@ library(hafez)
 #      sample_n(5000) %>%
 #      ungroup() %>%
 #      # dplyr::filter(cell_line == 'JURKAT') %>%
-#      dplyr::select(all_of(c(features_cellcycle)), cell.id, gate=traj_phase, condition, timepoint, pseudotime =pseudotime_adjusted ) %>%
+#      dplyr::select(all_of(c(features_cellcycle)), cell.id, gate=traj_phase, condition, timepoint, pseudotime_orig =pseudotime_adjusted ) %>%
 #      ungroup() %>%
 #      mutate(gate = factor(gate, levels = c('G1','S','G2','M')),
 #             condition = factor(condition, levels =c('WT','PALBO','HU','NOC')))
@@ -34,16 +34,47 @@ colScale_phases_manualAll = scale_color_manual(values = Phases_gate_Colors,name 
 fillScale_phases_manualAll = scale_fill_manual(values = Phases_gate_Colors, name = 'Cell cycle\nphase')
 
 
-example_cytof_data = hafez::example_cytof_data %>%
-     mutate_at(features_cellcycle, scale)
+# example_cytof_data = hafez::example_cytof_data %>%
+#      mutate_at(features_cellcycle, scale)
+
+##################################################################################
+## perform hafez landmark processing and trajectory inference
+##################################################################################
+# start=Sys.time()
+hafez_input =  hafez::example_cytof_data
+hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
+features_pc=paste0('PC',1:6)
+
+## without landmarks
+hafez_output = hafez_TI(FULL_DATA = hafez_input,
+                        features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,return_pseudotime_only = F,
+                        features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F, ## verbose does not currenly work
+                        return_node_pos = F )
+
+## with landmarks
+hafez_output = hafez_TI(FULL_DATA = hafez_input, LM_DATA = hafez_output %>% sample_n(500) ,
+                        features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,return_pseudotime_only = F,
+                        features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F, ## verbose does not currenly work
+                        return_node_pos = F )
+hafez_output
 
 
 ############################################################
 ## DBPN: density based pseudotime normalization
 ############################################################
-example_cytof_data = hafez_DBPN(dataset = example_cytof_data, dataset.subset_to_use = example_cytof_data %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'pseudotime',adjust.value = 0.5)
+## perform pseudotime normalization on the newly computed pseudotime with the toy dataset
+hafez_output = hafez_DBPN(dataset = hafez_output, dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'LM_TI_path1',adjust.value = 0.5)
 
-ggplot(example_cytof_data, aes(x = PSEUDOTIME_NORMALIZED, y = pseudotime))+
+ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = LM_TI_path1))+
+     theme_bw() +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
+     geom_point(aes(color = gate)) +
+     colScale_phases_manualAll
+
+## The toy dataset contructs a poor pseudotime so we provide the original pseudotime as an example
+hafez_output = hafez_DBPN(dataset = hafez_output, dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'pseudotime_orig',adjust.value = 0.5)
+
+ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = pseudotime_orig))+
      theme_bw() +
      theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
      geom_point(aes(color = gate)) +
@@ -53,8 +84,8 @@ ggplot(example_cytof_data, aes(x = PSEUDOTIME_NORMALIZED, y = pseudotime))+
 ############################################################
 ## calculate cell density by group
 ############################################################
-density_by_group_results = calculate_cell_density_by_group(dataset = example_cytof_data, group_splits = c('condition','timepoint'),pseudotime_column_name = 'PSEUDOTIME_NORMALIZED')
-myRug = compute_rug(dataset = example_cytof_data,pseudotime_column = 'PSEUDOTIME_NORMALIZED',group_column = 'gate',num_bins = 100,recompute_pseudotime_bins = T) %>%
+density_by_group_results = calculate_cell_density_by_group(dataset = hafez_output, group_splits = c('condition','timepoint'),pseudotime_column_name = 'PSEUDOTIME_NORMALIZED')
+myRug = compute_rug(dataset = hafez_output,pseudotime_column = 'PSEUDOTIME_NORMALIZED',group_column = 'gate',num_bins = 100,recompute_pseudotime_bins = T) %>%
      mutate(group = factor(group, levels =c('G1','S','G2','M')))
 
 ggplot(density_by_group_results, aes(x = x, y=y, color = condition))+
@@ -72,23 +103,46 @@ ggplot(density_by_group_results, aes(x = x, y=y, color = condition))+
 ######################################################################################################
 ## perform pseudotime mapped mahalanobis distance  without and with landmark cells (WT condition)
 ######################################################################################################
-## perform desired discetization of pseudotime bins
-example_cytof_data = computePseudotimeBins(dataset = example_cytof_data,pseudotime_column = 'PSEUDOTIME_NORMALIZED',interval_sequence = seq(0,1,0.05))
+## The previous landmark preprocessing used a PCA approach for LM normalization. The outputted preprocessed data only returns the landmark constructs PCs even though the features were landmark processed under the hood.
+## To perform further landmark analysis directly on the features, we reprocess the features directly using then method arguement.
+hafez_output_2 = hafez_landmark_processing(train = hafez_output %>% dplyr::filter(condition == 'WT'),
+                                           full_data = hafez_output,features = features_cellcycle,
+                                         method = 'raw',return_object = F)
 
-pm_mahalanobis_results_all_cells = pseudotime_mapped_mahalanobis_analysis(dataset = example_cytof_data,method = 'all',features = features_cellcycle, reference_group_column = NULL,reference_group_name = NULL,CELL_COUNT_THRESHOLD = 0)
-pm_mahalanobis_results_wt_landmarks = pseudotime_mapped_mahalanobis_analysis(dataset = example_cytof_data,method = 'landmark', features = features_cellcycle, reference_group_column = 'condition',reference_group_name = 'WT', CELL_COUNT_THRESHOLD = 0)
+## perform desired discetization of pseudotime bins for post-traj landmark analysis.
+hafez_output_2 = computePseudotimeBins(dataset = hafez_output_2,pseudotime_column = 'PSEUDOTIME_NORMALIZED',interval_sequence = seq(0,1,0.05))
+
+pm_mahalanobis_results_all_cells = pseudotime_mapped_mahalanobis_analysis(dataset = hafez_output_2,method = 'all',features = features_cellcycle, reference_group_column = NULL,reference_group_name = NULL,CELL_COUNT_THRESHOLD = 0)
+pm_mahalanobis_results_wt_landmarks = pseudotime_mapped_mahalanobis_analysis(dataset = hafez_output_2,method = 'landmark', features = features_cellcycle, reference_group_column = 'condition',reference_group_name = 'WT', CELL_COUNT_THRESHOLD = 0)
 
 
-example_cytof_data_mahalanobis_results = example_cytof_data %>%
+hafez_output_2_mahalanobis_results = hafez_output_2 %>%
      dplyr::left_join(pm_mahalanobis_results_all_cells %>% dplyr::rename(mahalanobis_distance_all = mahalanobis_distance)) %>%
      dplyr::left_join(pm_mahalanobis_results_wt_landmarks %>% dplyr::rename(mahalanobis_distance_lm = mahalanobis_distance))
+
+ggplot(hafez_output_2_mahalanobis_results, aes(x = PSEUDOTIME_NORMALIZED, y=mahalanobis_distance_all, color = condition))+
+     theme_bw() +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
+     geom_smooth()+
+     ggnewscale::new_scale_colour()+
+     viridis::scale_color_viridis(option = 'magma', discrete = T) +
+     geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
+
+ggplot(hafez_output_2_mahalanobis_results, aes(x = PSEUDOTIME_NORMALIZED, y=mahalanobis_distance_lm, color = condition))+
+     theme_bw() +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
+     geom_smooth()+
+     ggnewscale::new_scale_colour()+
+     viridis::scale_color_viridis(option = 'magma', discrete = T) +
+     geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
+
 
 
 ##################################################################################
 ## identify differential features of noncaonical cells ##
 ##################################################################################
 ## identify differential features between noncanonical and canonical cells in drug systems.
-glm_input = example_cytof_data_mahalanobis_results %>%
+glm_input = hafez_output_2_mahalanobis_results %>%
      computePseudotimeBins(dataset = .,pseudotime_column = 'PSEUDOTIME_NORMALIZED',interval_sequence = seq(0,1,0.5)) %>%
      mutate(noncanonical = ifelse(mahalanobis_distance_lm > quantile(example_cytof_data_mahalanobis_results$mahalanobis_distance_lm, 0.75,na.rm =T), 'noncanonical', 'canonical'))
 dif_res_by_ct = hafez::differential_analysis_program(glm_input = glm_input ,outcome_features = features_cellcycle, contrast_variables = 'noncanonical',intercept = TRUE,contrast_method = 'emm',
@@ -98,6 +152,7 @@ dif_res_by_ct = dif_res_by_ct #%>%
 
 library(patchwork)
 ggplot(dif_res_by_ct , aes(x = estimate, y = minus_log10padj, color = condition))+
+     theme_bw() +
      geom_point()+
      geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
      geom_vline(xintercept= c(0.5,-0.5), linetype = 'dashed')+
@@ -118,25 +173,19 @@ ggplot(dif_res_by_ct , aes(x = estimate, y = minus_log10padj, color = condition)
 #      facet_wrap(~pseudotime_bins)
 
 
-##################################################################################
-## perform hafez landmark processing and trajectory inference
-##################################################################################
-# start=Sys.time()
-hafez_input =  hafez::example_cytof_data
-hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
-features_pc=paste0('PC',1:6)
-hafez_output = hafez_TI(FULL_DATA = hafez_input,
-         features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,
-         features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F,
-         PERFORM_OOS = FALSE, OOS_idx = landmark_dr2 %>% ungroup(), return_node_pos = F )
-
-meelad_res_oos_PCA = hafez_TI(FULL_DATA = landmark_dr2,
-                              features = features_pc[1:6],NumNodes =5,lambda = 0.01,mu = 0.01,
-                              features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',
-                              PERFORM_OOS = FALSE, OOS_idx = landmark_dr2 %>% ungroup(), return_node_pos = F )
+# hafez_output_ti = hafez_TI(FULL_DATA = hafez_output,
+#                               features = features_pc[1:6],NumNodes =5,lambda = 0.01,mu = 0.01,
+#                               features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',
+#                               PERFORM_OOS = FALSE, OOS_idx = landmark_dr2 %>% ungroup(), return_node_pos = F )
 # end=Sys.time()
 
-
+# TEST = ElPiGraph.R::computeElasticPrincipalCurve(X = as.matrix(hafez_output %>% dplyr::select(all_of(features_pc))),
+#                                                     NumNodes = NumNodes,ProbPoint=ProbPoint, nReps =nReps,
+#                                                     MaxNumberOfIterations = MaxNumberOfIterations,
+#                                                     verbose=verbose,
+#                                                     Lambda = Lambda, Mu = Mu,Do_PCA = F,  drawPCAView = drawPCAView, drawAccuracyComplexity=drawAccuracyComplexity,
+#                                                     # verbose = verbose,
+#                                                     drawEnergy = drawEnergy)
 #
 # # ggplot(example_cytof_data_mahalanobis_results, aes(x = PSEUDOTIME_NORMALIZED, y=mahalanobis_distance_all, color = condition))+
 # #      theme_bw() +
