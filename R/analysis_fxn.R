@@ -243,8 +243,9 @@ pseudotime_mapped_mahalanobis_analysis = function(dataset, method = 'landmark_ma
 ## column_to_normalize: name of column to normalize in dataset
 #' @title hafez_DBPN
 #' @description
+#' use the normalize_by_sample_column to specify the column name that contains the column identifier to calculate density distributions for each subject/sample of choice, then normalize the pseudotime by the density estimate
 #' @export
-hafez_DBPN = function(dataset, density_bins = 1024,  dataset.subset_to_use = NULL ,column_to_normalize=NULL, bandwidth = 'nrd0', adjust.value = 1, CIRCULARIZE = FALSE, RETURN_DENSITY_COORDINATES = FALSE){
+hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column = NULL, dataset.subset_to_use = NULL ,column_to_normalize=NULL, bandwidth = 'nrd0', adjust.value = 1, CIRCULARIZE = FALSE, RETURN_DENSITY_COORDINATES = FALSE){
      dataset$x = NULL
      dataset$y = NULL
      dataset$y_normalized = NULL
@@ -334,20 +335,38 @@ hafez_DBPN = function(dataset, density_bins = 1024,  dataset.subset_to_use = NUL
                return(list(df.dbpn = cyclingCells %>% ungroup(), density_df_01 = density_df_01))
           }
           return(cyclingCells %>% ungroup())
+
      } else if (use_subset_of_cells == TRUE){
           message('computing pseudotime normalization on the provided subset of cells...')
           cyclingCells_FULL = dataset
           cyclingCells = dataset.subset_to_use
-          density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
-          # data.frame(x = density.res$x, y  =density.res$y)
-          ## repeat y values on either side to make it connected/circular
-          if (CIRCULARIZE == T){
-               density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1),  from = (myRange[1]-myRange[2]), to = (myRange[2]+myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+
+          if (!is.null(normalize_by_sample_column)){
+               if (CIRCULARIZE == T){
+                    density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1),  from = (myRange[1]-myRange[2]), to = (myRange[2]+myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+               } else {
+
+                    density.df = lapply(split(cyclingCells,cyclingCells[[normalize_by_sample_column]]), function(dd){
+                         density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+                         density.df = data.frame(x = density.res$x, y  =density.res$y) %>%
+                              mutate(normalize_by_sample_column=unique(dd[[normalize_by_sample_column]]))
+
+                    }) %>% bind_rows() %>%
+                         group_by(x)%>%
+                         summarize(y=mean(y))
+               }
+
+          } else{
+               if (CIRCULARIZE == T){
+                    density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1),  from = (myRange[1]-myRange[2]), to = (myRange[2]+myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+               } else {
+                    density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+                    density.df = data.frame(x = density.res$x, y  =density.res$y)
+               }
           }
 
-          density.df = data.frame(x = density.res$x, y  =density.res$y)
-          # plot(density.df$x, density.df$y)
-          density_df_01 = density.df %>% dplyr::filter(x>=0 & x<=1) %>%
+          density_df_01 = density.df %>%
+               dplyr::filter(x>=0 & x<=1) %>%
                mutate(y_normalized = y/sum(y),
                       pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
                       pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
@@ -356,6 +375,22 @@ hafez_DBPN = function(dataset, density_bins = 1024,  dataset.subset_to_use = NUL
                       pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
                       pseudotime_density_max = cumulative.sum,
                       pseudotime_bins_density_based = 1:nrow(.))
+
+           # data.frame(x = density.res$x, y  =density.res$y)
+          ## repeat y values on either side to make it connected/circular
+
+
+          # plot(density.df$x, density.df$y)
+          # density_df_01 = density.df %>%
+          #      dplyr::filter(x>=0 & x<=1) %>%
+          #      mutate(y_normalized = y/sum(y),
+          #             pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
+          #             pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+          #
+          #             cumulative.sum = cumsum(y_normalized),
+          #             pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+          #             pseudotime_density_max = cumulative.sum,
+          #             pseudotime_bins_density_based = 1:nrow(.))
 
           ## SQL based join on a range from S/O
           ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
@@ -743,12 +778,17 @@ hafez_TI = function(FULL_DATA, features, features_for_start_cell_id, LM_DATA=NUL
           FULL_DATA_TRAIN=FULL_DATA
 
      } else if(PERFORM_OOS==TRUE){
+
           # LM data can be either a vector  of indexes or a dataframe
           if (is.vector(LM_DATA)) {
                FULL_DATA_TRAIN = FULL_DATA[LM_DATA, ]
           } else {
                ## if providing a pre-filtered training data
                FULL_DATA_TRAIN=LM_DATA %>% ungroup()
+          }
+          if (nrow(LM_DATA) == 0){
+               message('no landmarks found...check inputted index vector or dataframe. Returning NA')
+               return(NA)
           }
      }
 
@@ -846,6 +886,10 @@ hafez_TI = function(FULL_DATA, features, features_for_start_cell_id, LM_DATA=NUL
           }
 
 
+          if (nrow(FULL_DATA)!= nrow(pst)){
+               message('mismatched data and pseudotime dataframes')
+               return(NULL)
+          }
           FULL_DATA = FULL_DATA %>%
                dplyr::select(-any_of(   colnames(pst))) %>%
                bind_cols(pst)
