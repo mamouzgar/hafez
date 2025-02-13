@@ -46,10 +46,21 @@ hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(co
 features_pc=paste0('PC',1:6)
 
 ## without landmarks
-hafez_output = hafez_TI(FULL_DATA = hafez_input,
+hafez_output = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,
                         features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,return_pseudotime_only = F,
-                        features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F, ## verbose does not currenly work
+                        features_for_start_cell_id =  features_cellcycle,branch_type  = 'circle',verbose = F, ## verbose does not currenly work
                         return_node_pos = F )
+
+
+test = hafez:::hafez_TI_circle(CONTROL_DATA = hafez_input,FULL_DATA = hafez_input,FEATURES = features_pc,NumNodes = 5)
+test = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,features = features_pc,branch_type = 'circle',PERFORM_OOS)
+test2 = invisible(capture.output(hafez:::hafez_TI_circle (CONTROL_DATA = hafez_input %>% sample_n(500), FULL_DATA = hafez_input, FEATURES =features_pc, LABELS = NULL,
+                                                         NumNodes = 25, nReps = 5, ProbPoint = 0.6 ,
+                                                         Lambda = 0.01, Mu=0.1, Do_PCA = F,
+                                                         RETURN_PROJECTION = FALSE,
+                                                         MaxNumberOfIterations  = 20,
+                                                         drawAccuracyComplexity = FALSE,drawEnergy = FALSE,  drawPCAView = F, verbose = FALSE)))
+
 
 ## with landmarks
 hafez_output = hafez_TI(FULL_DATA = hafez_input, LM_DATA = hafez_output %>% sample_n(500) ,
@@ -79,6 +90,42 @@ ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = pseudotime_orig))+
      theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
      geom_point(aes(color = gate)) +
      colScale_phases_manualAll
+
+## you can also density normalize by different groups, like different donors.
+## it will compute a density curve for each donor, then average them before performing pseudotime normalization.
+## this is useful if you want to stabilize donor heterogeneity, and controls for variation in cell numbers so donors with more cells do not bias the normalization
+## here we just normalize by the condition column as the group.
+hafez_output = hafez_DBPN(dataset = hafez_output, dataset.subset_to_use = hafez_output ,
+                          column_to_normalize = 'pseudotime_orig', adjust.value = 0.5,
+                          normalize_by_sample_column = 'condition')
+
+## We demonstrate that pseudotime normalization quantifies inhibitor action as a biological concept, but we recommend looking at cell density distributions of different inhibitors/groups along a normal trajectory for interepretation purposes.
+## That said, you can reproduce this inhibitor action demonstrated in the manuscript using then following code.
+## herre is an example code to efficiently do this using tidyverse
+hafez_output_pst_action = hafez_output %>%
+     group_by(condition2=condition) %>%
+     group_map(~{
+          norm_pst_col_name = unique(.$condition)
+          # print(norm_pst_col_name)
+          hafez_DBPN(dataset=hafez_output, dataset.subset_to_use = .,column_to_normalize = 'pseudotime_orig',
+                     new_dbp_name = 'pst_inhib_action'  ) %>%
+               mutate(condition_used = norm_pst_col_name)
+          }) %>%
+     bind_rows()
+
+## then we compute the average phenotype in each bin
+hafez_output_pst_action_res = hafez_output_pst_action %>%
+     group_by(condition2=condition,condition_used2=condition_used)%>%
+     group_map(~{
+          condition = unique(.$condition)
+          condition_used = unique(.$condition_used)
+          compute_rug(.,pseudotime_column = 'pst_inhib_action',group_column = 'gate',mySeq = seq(0,1,0.01),groups_to_keep = c('G1','S','G2','M' )) %>%
+                           mutate(condition=condition,
+                                  condition_used=condition_used)
+     }) %>% bind_rows()
+ggplot(hafez_output_pst_action_res %>% dplyr::filter(condition==condition_used), aes(x = pseudotime_bins, y =condition  , fill =group ))+
+     geom_tile(color = 'black')+
+     fillScale_phases_manualAll
 
 
 ############################################################
@@ -129,6 +176,50 @@ ggplot(hafez_output_2_mahalanobis_results, aes(x = PSEUDOTIME_NORMALIZED, y=maha
      geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
 
 ggplot(hafez_output_2_mahalanobis_results, aes(x = PSEUDOTIME_NORMALIZED, y=mahalanobis_distance_lm, color = condition))+
+     theme_bw() +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
+     geom_smooth()+
+     ggnewscale::new_scale_colour()+
+     viridis::scale_color_viridis(option = 'magma', discrete = T) +
+     geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
+
+
+######################################################################################################
+## performing landmark, or landmark-pseudotime knn  distance analysis
+######################################################################################################
+
+## map to landmark cells
+score_res_distance = find_closest_neighbor_distance(full_data = hafez_output %>% ungroup()  %>% mutate_at(features_cellcycle, scale),
+                                                    LM_col = 'condition',LM_group = 'WT',features = features_cellcycle,
+                                                    k_ave = 10,
+                                                    k_solo = 1, return_knn_graph = F)
+
+hafez_output$nn_dist = score_res_distance
+
+ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y=nn_dist, color = condition))+
+     theme_bw() +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
+     geom_smooth()+
+     ggnewscale::new_scale_colour()+
+     viridis::scale_color_viridis(option = 'magma', discrete = T) +
+     geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
+
+## map to landmark cells along pseudotime - this utility may be important depending on how your cell ordering was defined.
+score_res_distance_pst = hafez_output %>%
+     ungroup()  %>%
+     mutate_at(features_cellcycle, scale)%>%
+     hafez::computePseudotimeBins(pseudotime_column = 'PSEUDOTIME_NORMALIZED',interval_sequence = seq(0,1,0.05))%>%
+     group_by(pseudotime_bins) %>%
+     group_map(~find_closest_neighbor_distance(full_data = .,
+                                               LM_col = 'condition',LM_group = 'WT',features = features_cellcycle,
+                                               k_ave = 5,
+                                               k_solo = 1, return_knn_graph = F) ) %>%
+     unlist()
+
+## make sure to reorder according to cell id
+hafez_output$nn_dist_pst = score_res_distance_pst[hafez_output$cell.id]
+
+ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y=nn_dist_pst, color = condition))+
      theme_bw() +
      theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
      geom_smooth()+
