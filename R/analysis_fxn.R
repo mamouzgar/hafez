@@ -27,28 +27,12 @@ hafezify = function(dataset){
 
 
 #' @title computePseudotimeBins
-#' @description
+#' @description Discretizes pseudotime bins
 #' @export
-computePseudotimeBins = function(dataset,pseudotime_column, bin_width = 0.01, bin_num = 100, bin_approach = 'find_interval', interval_sequence = seq(0,1,0.01)){
-     if (bin_approach == 'find_interval'){
-          if (is.null(interval_sequence) == TRUE){
-               stop('you must input an arguement for interval_sequence,such as seq(0,1,0.05). The order is seq(from = start pst, to=  end pst, by = increment of sequence ')
-          }
-          # message('using interval_sequence...' )
-          # print(interval_sequence)
-          dataset = dataset %>%
-               mutate(pseudotime_bins =findInterval(!!sym(pseudotime_column), interval_sequence), ## ~ 180 bins
-                      pseudotime_bins = as.numeric(pseudotime_bins))
-          # } else if(bin_approach == 'equal_width'){
-          #      dataset = dataset %>%
-          #           mutate(pseudotime_bins = cut_width(!!sym(pseudotime_column),bin_width,closed = 'left'), ## ~ 180 bins
-          #                  pseudotime_bins = as.numeric(pseudotime_bins))
-     } else{
-          dataset = dataset %>%
-               mutate(pseudotime_bins = ggplot2::cut_number(!!sym(pseudotime_column), bin_num), ## ~ 180 bins
-                      pseudotime_bins = as.numeric(pseudotime_bins))
-     }
-
+computePseudotimeBins = function(dataset,pseudotime_column, interval_sequence = seq(0,1,0.01)){
+     dataset = dataset %>%
+          mutate(pseudotime_bins =findInterval(!!sym(pseudotime_column), interval_sequence), ## ~ 180 bins
+                 pseudotime_bins = as.numeric(pseudotime_bins))
      return(dataset)
 }
 
@@ -92,15 +76,15 @@ compute_rug = function(dataset, pseudotime_column, group_column = 'gate', mySeq=
 
 
 #' @title calculate_cell_density_by_group
-#' @description
+#' @description Calculates kernel density estimate for groups specified in data.
 #' @export
-calculate_cell_density_by_group = function(dataset, group_splits = NULL, pseudotime_column_name,adjust.value = 1, n = 512,from=NULL, to =NULL, COMPUTE_CIRCULAR = FALSE ,count_threshold = 100, sep_operator = '_-_', verbose = FALSE, ...){
+calculate_cell_density_by_group = function(dataset, group_splits = NULL, pseudotime_column_name="PSEUDOTIME_NORMALIZED",adjust.value = 1, n = 512,from=NULL, to =NULL, sep_operator = '_-_',  COMPUTE_CIRCULAR = FALSE ,count_threshold = 100,verbose = FALSE, ...){
 
      if (is.null(from)){
-          from = min(dataset[[pseudotime_column_name]])
+          from = min(dataset[[pseudotime_column_name]],na.rm = T)
      }
      if (is.null(to)){
-          to = max(dataset[[pseudotime_column_name]])
+          to = max(dataset[[pseudotime_column_name]],na.rm = T)
      }
 
       if (is.null(group_splits)){
@@ -190,10 +174,10 @@ calculate_cell_density_by_group = function(dataset, group_splits = NULL, pseudot
 # }
 
 
-#' @title mahalanobis_distance_to_reference_group
-#' @description
-#' @export
-mahalanobis_distance_to_reference_group = function(dataset, features, reference_group_column, reference_group_name, referenceSelf = FALSE, sampleInternally = NULL, tol=1e-20,precalculated_mean = NULL,precalculated_cov = NULL,CELL_COUNT_THRESHOLD=NULL){ ## tol=1e-20
+#' @title mahalanobis_distance_to_landmark_group
+#' @description Calculates mahalanobis distance to a set of landmark cells
+#' @noRd
+mahalanobis_distance_to_landmark_group = function(dataset, features, reference_group_column, reference_group_name, referenceSelf = FALSE, sampleInternally = NULL, tol=1e-20,precalculated_mean = NULL,precalculated_cov = NULL,CELL_COUNT_THRESHOLD=50){ ## tol=1e-20
 
      if (referenceSelf == TRUE){
           REFERENCE_mahalanobis.input = dataset %>%
@@ -232,22 +216,20 @@ mahalanobis_distance_to_reference_group = function(dataset, features, reference_
      return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance=mahalanobis_distance))
 }
 
-##takes in "landmark" for landmark mapped analysis,  or "all"
-
 #' @title pseudotime_mapped_mahalanobis_analysis
-#' @description
+#' @description takes in "landmark" for landmark mapped analysis,  or "all"
 #' @export
-pseudotime_mapped_mahalanobis_analysis = function(dataset, method = 'landmark_mapped', pseudotime_bin_column='pseudotime_bins', features, reference_group_column=NULL, reference_group_name=NULL,CELL_COUNT_THRESHOLD=NULL){
+pseudotime_mapped_mahalanobis_analysis = function(dataset, method = c('landmark_mapped','all'), pseudotime_bin_column='pseudotime_bins', features, reference_group_column=NULL, reference_group_name=NULL,CELL_COUNT_THRESHOLD=50){
      dataset$'pseudotime_bins' = dataset[[pseudotime_bin_column]]
      if (method == 'landmark'){
           PM_mahaalanobis_results = dataset %>%
                group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_reference_group(., features, reference_group_column, reference_group_name, referenceSelf = FALSE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
+               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = FALSE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
                bind_rows()
      } else if (method == 'all'){
           PM_mahaalanobis_results = dataset %>%
                group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_reference_group(., features, reference_group_column, reference_group_name, referenceSelf = TRUE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
+               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = TRUE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
                bind_rows()
      }
      return(PM_mahaalanobis_results)
@@ -627,7 +609,7 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
 ## landmark  preprocessing and normalization ##
 ##################################################
 #' @title hafez_landmark_processing
-#' @description
+#' @description Performs landmark preprocessing
 #' @export
 hafez_landmark_processing = function(train, full_data, features, method = 'PCA', return_object = FALSE ){
 
@@ -1129,7 +1111,7 @@ wrangle_data_for_knn_index_resolution = function(full_data,LM_col=NULL,LM_group=
 
 
 #' @title find_closest_neighbor_distance
-#' @description
+#' @description Calculates distance to landmark cells.
 #' @export
 ##k_ave is the # of neighbors to use in the distance output. Anything more than 1 will take the average of each index it is proximal to.
 ## a value of -1 for k_ave finds the closest non-self neighbor, which is equivalently the  2nd closest neighbor.

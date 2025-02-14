@@ -227,7 +227,29 @@ ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y=nn_dist_pst, color = condi
      viridis::scale_color_viridis(option = 'magma', discrete = T) +
      geom_rug(data = myRug, aes(x = pseudotime, color  = group), inherit.aes = F)
 
+################################################################################
+## time series visualization and clustering
+################################################################################
+density_by_group_results2=density_by_group_results %>%
+     bind_rows(density_by_group_results %>% mutate(timepoint = '1'))
+ts_res = hafez_tsvz(density_by_group_results2,groups = c('condition','timepoint'),approach = 'density',k = c(2,3))
 
+ts_res$p.clusterpatterns
+ggplot(ts_res$dDR, aes(x= dDR1, y =dDR2, color = dDR_cluster))+
+     theme_bw() +
+     geom_point()
+
+
+# ts_res$dDR_clust@cluster
+# ts_res$dDR_clust@cldist
+# rownames(ts_res@cldist) = ts_res@cluster
+
+# match(rownames(ts_res$dDR_clust@cldist),ts_res$dDR_clust@cluster)
+
+# table(tx2gene_filt$gene_id == rownames(so_d5)) ##  all  should true
+
+# rownames(so) = tx2gene_filt$gene_name ## assign GENE NAME to the transcript name. NOTE: only works for matrices, not dataframes
+hafez_tsvz_clust()
 
 ##################################################################################
 ## identify differential features of noncaonical cells ##

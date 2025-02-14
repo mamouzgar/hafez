@@ -7,18 +7,18 @@
 calculate_cell_density_by_group(
   dataset,
   group_splits = NULL,
-  pseudotime_column_name,
+  pseudotime_column_name = "PSEUDOTIME_NORMALIZED",
   adjust.value = 1,
   n = 512,
   from = NULL,
   to = NULL,
+  sep_operator = "_-_",
   COMPUTE_CIRCULAR = FALSE,
   count_threshold = 100,
-  sep_operator = "_-_",
   verbose = FALSE,
   ...
 )
 }
 \description{
-calculate_cell_density_by_group
+Calculates kernel density estimate for groups specified in data.
 }

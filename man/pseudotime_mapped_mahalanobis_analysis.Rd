@@ -6,14 +6,14 @@
 \usage{
 pseudotime_mapped_mahalanobis_analysis(
   dataset,
-  method = "landmark_mapped",
+  method = c("landmark_mapped", "all"),
   pseudotime_bin_column = "pseudotime_bins",
   features,
   reference_group_column = NULL,
   reference_group_name = NULL,
-  CELL_COUNT_THRESHOLD = NULL
+  CELL_COUNT_THRESHOLD = 50
 )
 }
 \description{
-pseudotime_mapped_mahalanobis_analysis
+takes in "landmark" for landmark mapped analysis,  or "all"
 }

@@ -7,12 +7,9 @@
 computePseudotimeBins(
   dataset,
   pseudotime_column,
-  bin_width = 0.01,
-  bin_num = 100,
-  bin_approach = "find_interval",
   interval_sequence = seq(0, 1, 0.01)
 )
 }
 \description{
-computePseudotimeBins
+Discretizes pseudotime bins
 }

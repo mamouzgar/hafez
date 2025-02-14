@@ -7,20 +7,212 @@
 hafez_DBPN(
   dataset,
   density_bins = 1024,
+  normalize_by_sample_column = NULL,
   dataset.subset_to_use = NULL,
   column_to_normalize = NULL,
   bandwidth = "nrd0",
   adjust.value = 1,
-  CIRCULARIZE = FALSE,
-  RETURN_DENSITY_COORDINATES = FALSE
+  RETURN_DENSITY_COORDINATES = FALSE,
+  new_dbp_name = "PSEUDOTIME_NORMALIZED"
 )
 }
 \description{
-hafez_DBPN
+use the normalize_by_sample_column to specify the column name that contains the column identifier to calculate density distributions for each subject/sample of choice, then normalize the pseudotime by the density estimate
 }
 \details{
 to add:
 cosine analysis
  geometric sketching
  density based normalization
+## column_to_normalize: name of column to normalize in dataset
+#' @title hafez_DBPN
+#' @description
+#' use the normalize_by_sample_column to specify the column name that contains the column identifier to calculate density distributions for each subject/sample of choice, then normalize the pseudotime by the density estimate
+#' @export
+hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column = NULL, dataset.subset_to_use = NULL ,column_to_normalize=NULL, bandwidth = 'nrd0', adjust.value = 1, CIRCULARIZE = FALSE, RETURN_DENSITY_COORDINATES = FALSE){
+     dataset$x = NULL
+     dataset$y = NULL
+     dataset$y_normalized = NULL
+     dataset$pseudotime_bin_01_min = NULL
+     dataset$pseudotime_bin_01_max = NULL
+     dataset$cumulative.sum = NULL
+     dataset$pseudotime_density_min = NULL
+     dataset$pseudotime_density_max = NULL
+     dataset$pseudotime_bins_density_based = NULL
+     dataset$count = NULL
+     dataset$percentage_sum = NULL
+
+     if (!is.null(dataset.subset_to_use)){
+          use_subset_of_cells = TRUE
+          dataset.subset_to_use$PSEUDOTIME_TO_DBPN = dataset.subset_to_use[[column_to_normalize]]
+     } else {
+          use_subset_of_cells = FALSE
+     }
+     dataset$PSEUDOTIME_TO_DBPN = dataset[[column_to_normalize]]
+     myRange = c(floor(min(dataset$PSEUDOTIME_TO_DBPN , na.rm =T)), ceiling(max(dataset$PSEUDOTIME_TO_DBPN ,na.rm=T)) ) %>% as.numeric()## from and to values for density calculation
+     if(is.null(column_to_normalize)){
+          stop('must specify the pseudotime column to normalize')
+     }
+
+     ## sql hates the a column labeled time so we remove it if it's present
+     time_col_present = 'time' %in% colnames(dataset)
+     if (time_col_present == TRUE){
+          time_df = dataset %>% ungroup() %>% dplyr::select(time, cell.id)
+          dataset = dataset %>% dplyr::select(-time)
+
+          if (use_subset_of_cells == TRUE){
+               dataset.subset_to_use = dataset.subset_to_use %>% dplyr::select(-time)
+
+          }
+     }
+     if (use_subset_of_cells == FALSE){
+          message('normalizing on all cells')
+
+          cyclingCells = dataset
+          density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from = myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+          dataset.frame(x = density.res$x, y  =density.res$y)
+          ## repeat y values on either side to make it connected/circular
+          if (CIRCULARIZE == T){
+               density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1), from = (myRange[1]-myRange[2]), to = ( myRange[2]+ myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+          }
+          density.df = data.frame(x = density.res$x, y  =density.res$y)
+          # plot(density.df$x, density.df$y)
+          density_df_01 = density.df %>% dplyr::filter(x>=0 & x<=1) %>%
+               mutate(y_normalized = y/sum(y),
+                      pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
+                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+
+                      cumulative.sum = cumsum(y_normalized),
+                      pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+                      pseudotime_density_max = cumulative.sum,
+                      pseudotime_bins_density_based = 1:nrow(.))
+
+          ## SQL based join on a range from S/O
+          ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
+          ## 'from' and 'to' are in quotes because it's reserved language for SQL. Here we use pseudotime_bin_01.min and pseudotime_bin_01.max
+          # library('sqldf')
+          message('combining...')
+          cyclingCells_densityBins = cyclingCells # %>% dplyr::select(-time)
+          # SQLbins = as_tibble(sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.pseudotime_bins_density_based from cyclingCells_densityBins
+          SQLbins = as_tibble(sqldf::sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.* from cyclingCells_densityBins
+                join density_df_01 on cyclingCells_densityBins.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min and
+                          cyclingCells_densityBins.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max"))
+          cyclingCells = cyclingCells %>%
+               dplyr::bind_cols(SQLbins %>% dplyr::select(-PSEUDOTIME_TO_DBPN))
+
+          cyclingCells.PST_ADJUSTMENT = cyclingCells %>%
+               group_by(pseudotime_bins_density_based) %>%
+               summarize(count = n(),
+                         min = min(PSEUDOTIME_TO_DBPN),
+                         max = max(PSEUDOTIME_TO_DBPN)) %>%
+               mutate(percentage = count/sum(count),
+                      percentage_sum  = cumsum(percentage))
+          cyclingCells= cyclingCells %>%
+               left_join(cyclingCells.PST_ADJUSTMENT) %>%
+               group_by(pseudotime_bins_density_based) %>%
+               mutate(PSEUDOTIME_NORMALIZED = scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
+
+          if (time_col_present == TRUE){
+               cyclingCells = cyclingCells %>% left_join(time_df, by = 'cell.id')
+          }
+          if (RETURN_DENSITY_COORDINATES ==TRUE){
+               return(list(df.dbpn = cyclingCells %>% ungroup(), density_df_01 = density_df_01))
+          }
+          return(cyclingCells %>% ungroup())
+
+     } else if (use_subset_of_cells == TRUE){
+          message('computing pseudotime normalization on the provided subset of cells...')
+          cyclingCells_FULL = dataset
+          cyclingCells = dataset.subset_to_use
+
+          if (!is.null(normalize_by_sample_column)){
+               if (CIRCULARIZE == T){
+                    density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1),  from = (myRange[1]-myRange[2]), to = (myRange[2]+myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+               } else {
+
+                    density.df = lapply(split(cyclingCells,cyclingCells[[normalize_by_sample_column]]), function(dd){
+                         density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+                         density.df = data.frame(x = density.res$x, y  =density.res$y) %>%
+                              mutate(normalize_by_sample_column=unique(dd[[normalize_by_sample_column]]))
+
+                    }) %>% bind_rows() %>%
+                         group_by(x)%>%
+                         summarize(y=mean(y))
+               }
+
+          } else{
+               if (CIRCULARIZE == T){
+                    density.res = density(c(cyclingCells$PSEUDOTIME_TO_DBPN-1, cyclingCells$PSEUDOTIME_TO_DBPN, cyclingCells$PSEUDOTIME_TO_DBPN+1),  from = (myRange[1]-myRange[2]), to = (myRange[2]+myRange[2]) ,n=density_bins,bw =bandwidth,adjust = adjust.value)
+               } else {
+                    density.res = density(cyclingCells$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+                    density.df = data.frame(x = density.res$x, y  =density.res$y)
+               }
+          }
+
+          density_df_01 = density.df %>%
+               # dplyr::filter(x>=0 & x<=1) %>%
+               mutate(y_normalized = y/sum(y),
+                      pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
+                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+
+                      cumulative.sum = cumsum(y_normalized),
+                      pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+                      pseudotime_density_max = cumulative.sum,
+                      pseudotime_bins_density_based = 1:nrow(.))
+
+           # data.frame(x = density.res$x, y  =density.res$y)
+          ## repeat y values on either side to make it connected/circular
+
+
+          # plot(density.df$x, density.df$y)
+          # density_df_01 = density.df %>%
+          #      dplyr::filter(x>=0 & x<=1) %>%
+          #      mutate(y_normalized = y/sum(y),
+          #             pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
+          #             pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+          #
+          #             cumulative.sum = cumsum(y_normalized),
+          #             pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+          #             pseudotime_density_max = cumulative.sum,
+          #             pseudotime_bins_density_based = 1:nrow(.))
+
+          ## SQL based join on a range from S/O
+          ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
+          ## 'from' and 'to' are in quotes because it's reserved language for SQL. Here we use pseudotime_bin_01.min and pseudotime_bin_01.max
+          # library('sqldf')
+          message('integrating new pseudotime with full dataset...')
+          cyclingCells_densityBins = cyclingCells_FULL # %>% dplyr::select(-time)
+          # print(dim(cyclingCells_densityBins))
+          # SQLbins = as_tibble(sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.pseudotime_bins_density_based from cyclingCells_densityBins
+          SQLbins = as_tibble(sqldf::sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.* from cyclingCells_densityBins
+                join density_df_01 on cyclingCells_densityBins.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min and
+                          cyclingCells_densityBins.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max"))
+          # print(head(SQLbins))
+          cyclingCells_FULL = cyclingCells_FULL %>%
+               bind_cols(SQLbins %>% dplyr::select(-PSEUDOTIME_TO_DBPN))
+
+          # cyclingCells.PST_ADJUSTMENT = cyclingCells_FULL %>%
+          #      group_by(pseudotime_bins_density_based) %>%
+          #      summarize(count = n(),
+          #                min = min(PSEUDOTIME_TO_DBPN),
+          #                max = max(PSEUDOTIME_TO_DBPN)) %>%
+          #      mutate(percentage = count/sum(count),
+          #             percentage_sum  = cumsum(percentage))
+          cyclingCells_FULL= cyclingCells_FULL %>%
+               # left_join(cyclingCells.PST_ADJUSTMENT) %>%
+               group_by(pseudotime_bins_density_based) %>%
+               mutate(PSEUDOTIME_NORMALIZED = scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
+
+          cyclingCells_FULL = cyclingCells_FULL[, !colnames(cyclingCells_FULL) %in% c('x','y','y_normalized','pseudotime_bin_01_min','pseudotime_bin_01_max','cumulative.sum','pseudotime_density_min','pseudotime_density_max','pseudotime_bins_density_based') ] ## remove excess columns that users don't need to see
+          if (time_col_present == TRUE){
+               cyclingCells_FULL = cyclingCells_FULL %>% left_join(time_df, by = 'cell.id')
+          }
+
+          if (RETURN_DENSITY_COORDINATES ==TRUE){
+               return(list(df.dbpn = cyclingCells_FULL %>% ungroup(), density_df_01 = density_df_01))
+          }
+          message('density-based pseudotime normalization complete! Column name is now PSEUDOTIME_NORMALIZED')
+          return(cyclingCells_FULL %>%ungroup())
+     }
+}
 }
