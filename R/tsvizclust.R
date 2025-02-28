@@ -3,6 +3,7 @@
 #' @importFrom dtwclust tsclust
 #' @importFrom stats cmdscale
 #' @importFrom tidyr gather
+#' @importFrom dynutils scale_minmax
 
 
 
@@ -77,9 +78,11 @@ hafez_tsvz=function(ts_input, groups=NULL, approach = c('density','expr','other'
      centroid_df=centroid_df %>%
           mutate(x= pst_coords) %>%
           gather(key = cluster, value = y ,-x) %>%
-          mutate(cluster = as.character(cluster))
+          mutate(cluster = as.character(cluster)) %>%
+          group_by(cluster)%>%
+          mutate(y_01 = dynutils::scale_minmax(y))
 
-     p.clusterpatterns = ggplot(centroid_df, aes(x = x, y = y, color =cluster))+
+     p.clusterpatterns = ggplot(centroid_df, aes(x = x, y = y_01, color =cluster))+
           theme_bw() +
           geom_line()
 
@@ -92,6 +95,42 @@ hafez_tsvz=function(ts_input, groups=NULL, approach = c('density','expr','other'
 
 
 
+
+#' @title hafez_smoothing
+#' @description Computes GAM smoothing using a spline.
+#' @export
+## using smoothed expression patterns
+hafez_smoothing = function(data,groups = c(NULL), features, pseudotime_column = 'pst', pst_interval=NULL, bs='cs',...){
+     if (is.null(pst_interval)){
+          pst_min = min(data[[pseudotime_column]],na.rm=T)
+          pst_max = max(data[[pseudotime_column]], na.rm = T)
+          pst_interval = seq( pst_min, pst_max, (pst_max-pst_min)/100)
+     }
+
+     smoothed_patterns = data %>%
+          ungroup()%>%
+          mutate(pst = .[[pseudotime_column]]) %>%
+          pivot_longer(cols = all_of(features), names_to = 'feature',values_to = 'value') %>%
+          group_by(across(all_of(c(groups, 'feature')))) %>%
+          group_modify( .f= function(dd,...){
+               tryCatch({
+                    gr = mgcv::gam(formula = value ~ s(pst, bs = bs), data = dd)
+                    gr_pred = predict(gr, data.frame(pst=pst_interval), type = 'response', se.fit = TRUE)
+                    result = data.frame(pst=pst_interval) %>%
+                         mutate(x=pst,
+                                y = as.vector( gr_pred$fit),
+                                dev = as.vector(gr_pred$se.fit))
+                    return(result)
+               }, error = function(e) {
+                    # message(unique(dd$feature))
+                    # You can log the error message if needed
+                    message("An error occurred - unable to fit smoothed curve for a specific group: ", conditionMessage(e))
+                    return(data.frame(pst = NA))
+               })
+          })
+     message('complete!')
+     return(smoothed_patterns)
+}
 
 
 

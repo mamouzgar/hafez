@@ -51,17 +51,6 @@ hafez_output = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,
                         features_for_start_cell_id =  features_cellcycle,branch_type  = 'circle',verbose = F, ## verbose does not currenly work
                         return_node_pos = F )
 
-
-test = hafez:::hafez_TI_circle(CONTROL_DATA = hafez_input,FULL_DATA = hafez_input,FEATURES = features_pc,NumNodes = 5)
-test = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,features = features_pc,branch_type = 'circle',PERFORM_OOS)
-test2 = invisible(capture.output(hafez:::hafez_TI_circle (CONTROL_DATA = hafez_input %>% sample_n(500), FULL_DATA = hafez_input, FEATURES =features_pc, LABELS = NULL,
-                                                         NumNodes = 25, nReps = 5, ProbPoint = 0.6 ,
-                                                         Lambda = 0.01, Mu=0.1, Do_PCA = F,
-                                                         RETURN_PROJECTION = FALSE,
-                                                         MaxNumberOfIterations  = 20,
-                                                         drawAccuracyComplexity = FALSE,drawEnergy = FALSE,  drawPCAView = F, verbose = FALSE)))
-
-
 ## with landmarks
 hafez_output = hafez_TI(FULL_DATA = hafez_input, LM_DATA = hafez_output %>% sample_n(500) ,
                         features = features_pc,NumNodes =5,lambda = 0.01,mu = 0.01,return_pseudotime_only = F,
@@ -230,12 +219,27 @@ ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y=nn_dist_pst, color = condi
 ################################################################################
 ## time series visualization and clustering
 ################################################################################
+
+## using density results
 density_by_group_results2=density_by_group_results %>%
-     bind_rows(density_by_group_results %>% mutate(timepoint = '1'))
-ts_res = hafez_tsvz(density_by_group_results2,groups = c('condition','timepoint'),approach = 'density',k = c(2,3))
+     bind_rows(density_by_group_results %>% mutate(timepoint = '1')) ## example pseudo data
+ts_res = hafez_tsvz(density_by_group_results2,groups = c('condition','timepoint'),approach = 'density',k = c(2,3),return_dDRclust = F)
 
 ts_res$p.clusterpatterns
 ggplot(ts_res$dDR, aes(x= dDR1, y =dDR2, color = dDR_cluster))+
+     theme_bw() +
+     geom_point()
+
+
+
+## compute smoothed expression patterns and perform TSD clustering
+exp_patterns = hafez_smoothing(hafez_output,groups = c('condition','timepoint'),features = features_cellcycle,pseudotime_column = 'PSEUDOTIME_NORMALIZED')
+ggplot(exp_patterns, aes(x=pst ,y = y, color =feature))+
+     geom_line()+
+     facet_wrap(~condition)
+ts_res_exp = hafez_tsvz(exp_patterns,groups = c('condition','timepoint','feature'), approach = 'density',k = c(2:12),return_dDRclust = F)
+
+ggplot(ts_res_exp$dDR, aes(x=dDR1, y=dDR2, color = dDR_cluster))+
      theme_bw() +
      geom_point()
 
