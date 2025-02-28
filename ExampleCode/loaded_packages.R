@@ -33,7 +33,7 @@ combined_table <- rbind(attached_table, namespace_table)
 print(combined_table)
 
 # Write the combined data frame to a CSV file
-write.csv(combined_table, file = "~/package_list.csv", row.names = FALSE)
+write.csv(combined_table, file = "package_list.csv", row.names = FALSE)
 
 
 

@@ -1,0 +1,16 @@
+---
+title: "README"
+output: pdf_document
+date: "2025-02-28"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Hafez 
+! [Caption for the image](/Users/amouzgar/phd/Rpackages/hafez/other/Hafez.jpg) 
+## Hafez is a time-series analysis framework the performs landmark trajectory infernece and trajectory analysis strategies including cell density-based pseudotime normalization, time-series distance (TSD) clustering, and post-trajecory analysis methods that leverage the landmark framework. 
+
+
