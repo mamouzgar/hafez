@@ -97,7 +97,7 @@ hafez_tsvz=function(ts_input, groups=NULL, approach = c('density','expr','other'
 
 
 #' @title hafez_smoothing
-#' @description Computes GAM smoothing using a spline.
+#' @description Computes a generalized additive model smoothing using a spline. Takes in the data, your grouping variables, and the pseudotime column name.
 #' @export
 ## using smoothed expression patterns
 hafez_smoothing = function(data,groups = c(NULL), features, pseudotime_column = 'pst', pst_interval=NULL, bs='cs',...){

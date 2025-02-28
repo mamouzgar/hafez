@@ -15,5 +15,5 @@ hafez_smoothing(
 )
 }
 \description{
-Computes GAM smoothing using a spline.
+Computes a generalized additive model smoothing using a spline. Takes in the data, your grouping variables, and the pseudotime column name.
 }
