@@ -10,7 +10,6 @@ install_dependencies <- function() {
      } else {
           cat("gcc is already installed:\n", gcc_check, "\n")
      }
-
      ## setup to install distutils
      dir_path <- "~/.R"
      file_path <- file.path(dir_path, "Makevars")
@@ -22,7 +21,6 @@ install_dependencies <- function() {
      if (!file.exists(file_path)) {
           file.create(file_path)
      }
-
      if (file.exists(file_path)) {
           # Define the lines to be added
           lines_to_add <- c(
@@ -30,37 +28,23 @@ install_dependencies <- function() {
                "F77 = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran",
                "FLIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11"
           )
-
           # Append the lines to the Makevars file
           write(lines_to_add, file = file_path, append = TRUE)
      }
 
-
-     ## install distutils and elpigraph forked repos
+     if (!require("remotes", quietly = TRUE)){
+          install.packages("remotes")
+     }
+     ## install distutils and elpigraph
      if (!require("distutils", quietly = TRUE)){
-          devtools::install_github("mamouzgar/distutils", build_vignettes = FALSE,force = TRUE)
+          remotes::install_github("mamouzgar/distutils", build_vignettes = FALSE,force = TRUE)
      }
      if (!require("ElPiGraph.R", quietly = TRUE)){
-          devtools::install_github("mamouzgar/ElPiGraph.R", build_vignettes = FALSE,force = TRUE)
+          remotes::install_github("mamouzgar/ElPiGraph.R", build_vignettes = FALSE,force = TRUE)
      }
-
-     # # Install terminal packages (Linux example)
-     # if (Sys.info()["sysname"] == "Linux") {
-     #      system("sudo apt-get install -y package3")  # Replace with your terminal package
-     # }
-     #
-     # # Add more OS checks if necessary (e.g., macOS, Windows)
-     # if (Sys.info()["sysname"] == "macOS") {
-     #      system("sudo apt-get install -y package3")  # Replace with your terminal package
-     # }
+     remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 
 }
-# suppressMessages(install_dependencies())
+suppressMessages(install_dependencies())
 
-# Call the function during package loading
-.onLoad <- function(libname, pkgname) {
-     suppressMessages(install_dependencies())
-     # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
-
-}
 

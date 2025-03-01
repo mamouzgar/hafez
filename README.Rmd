@@ -27,10 +27,8 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 ## Installation: 
 ```{r,  eval=FALSE}
-if (!require("devtools", quietly = TRUE)){
-     install.packages("devtools")
-}
-devtools::install_github("mamouzgar/hafez")
+To install hafez, please download the install.R script and from Rstudio, run the command:
+source('~/Downloads/install.R')
 
 
 ```

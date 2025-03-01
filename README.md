@@ -34,10 +34,8 @@ modeling, Hafez.
 ## Installation:
 
 ``` r
-if (!require("devtools", quietly = TRUE)){
-     install.packages("devtools")
-}
-devtools::install_github("mamouzgar/hafez")
+To install hafez, please download the install.R script and from Rstudio, run the command:
+source('~/Downloads/install.R')
 ```
 
 Example code to run the different functions are available with example
