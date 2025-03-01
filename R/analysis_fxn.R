@@ -22,8 +22,6 @@
 #' @importFrom dplyr select
 #' @importFrom dplyr mutate
 #' @importFrom tibble as_tibble
-#' @importFrom base cumsum
-#' @import sqldf
 
 
 
