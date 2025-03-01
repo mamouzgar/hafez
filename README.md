@@ -19,13 +19,17 @@ collected works are regarded as some of the greatest achievements in
 Iranian literature. It is tradition to delve into the mysteries of fate
 and destiny through “faal-e-Hafez’’ (divination) when faced with
 challenges, choice, questions, or for entertainment. Hafez’s poetry
-often reveals answers during transitions in life, drawing parallels to
-the field of single-cell trajectory inference that maps cell fate and
-reveals cell state transitions. As Hafez often ponders the
-interconnectedness of human actions (experimental) and cosmic forces
-(computational) to interpret the world, we pay homage to his legacy by
-naming our integrated experimental and computational method for
-interpretable landmark trajectory inference and systems modeling, Hafez.
+intends to reveal our fate or destiny during transitions in life,
+drawing parallels to the field of single-cell trajectory inference that
+maps cell fate and reveals cell state transitions. The word Hafez
+literally translates to”one who remembers” or “keeps in memory” - which
+is fitting considering cell fate mechanisms are often encoded earlier in
+differentiation and remembered as cells meet their destiny. Hafez often
+ponders the interconnectedness of human actions (experimental) and
+cosmic forces (computational) to interpret the world, so we pay homage
+to his legacy by naming our integrated experimental and computational
+method for interpretable landmark trajectory inference and systems
+modeling, Hafez.
 
 ## Installation:
 
@@ -39,7 +43,7 @@ remotes::install_github("mamouzgar/hafez")
 
     ## 
     ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpH2nNi9/remotesb25668171242/mamouzgar-hafez-d4b561a/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpH2nNi9/remotesb25668171242/mamouzgar-hafez-d4b561a/DESCRIPTION’
+    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpJwxlaa/remotesb4504f0459fb/mamouzgar-hafez-1e1e9e8/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpJwxlaa/remotesb4504f0459fb/mamouzgar-hafez-1e1e9e8/DESCRIPTION’
     ##   ─  preparing ‘hafez’:
     ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
     ##   ─  checking for LF line-endings in source and make files and shell scripts
