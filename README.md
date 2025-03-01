@@ -34,30 +34,11 @@ modeling, Hafez.
 ## Installation:
 
 ``` r
-remotes::install_github("mamouzgar/hafez")
+if (!require("devtools", quietly = TRUE)){
+     install.packages("devtools")
+}
+devtools::install_github("mamouzgar/hafez")
 ```
-
-    ## Using GitHub PAT from the git credential store.
-
-    ## Downloading GitHub repo mamouzgar/hafez@HEAD
-
-    ## 
-    ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpJwxlaa/remotesb4504f0459fb/mamouzgar-hafez-1e1e9e8/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpJwxlaa/remotesb4504f0459fb/mamouzgar-hafez-1e1e9e8/DESCRIPTION’
-    ##   ─  preparing ‘hafez’:
-    ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-    ##   ─  checking for LF line-endings in source and make files and shell scripts
-    ##   ─  checking for empty or unneeded directories
-    ##   ─  looking to see if a ‘data/datalist’ file should be added
-    ##        NB: this package now depends on R (>= 3.5.0)
-    ##        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
-    ##      serialize/load version 3 cannot be read in older versions of R.
-    ##      File(s) containing such objects:
-    ##        ‘hafez/data/ct.rda’ ‘hafez/data/cytof_example_data.rda’
-    ##        ‘hafez/data/example_glm_input.rda’
-    ##   ─  building ‘hafez_0.0.0.9000.tar.gz’
-    ##      
-    ## 
 
 Example code to run the different functions are available with example
 data in ExampleCode/example_code.R. Install the package and follow the

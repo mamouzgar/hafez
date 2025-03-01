@@ -26,7 +26,7 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 
 ## Installation: 
-```{r}
+```{r,  eval=FALSE}
 if (!require("devtools", quietly = TRUE)){
      install.packages("devtools")
 }
