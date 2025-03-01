@@ -59,7 +59,8 @@ suppressMessages(install_dependencies())
 #      # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
 #
 # }
-install <- function() {
-     suppressMessages(install_dependencies())
-     # You can also include other installation steps here if needed
-}
+# Export the function
+#' @export
+install_dependencies
+suppressMessages(install_dependencies())
+
