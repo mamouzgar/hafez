@@ -12,7 +12,7 @@ landmark framework to study dynamic biological process through the lens
 of normal, healthy progression. It is fast, extensible, and
 generalizable to different single-cell omics and systems.
 
-<img src="other/cartoon.png" width="800px" />
+<img src="other/cartoon.jpg" width="800px" />
 
 The name, Hafez, is inspired by the 14th century Persian poet whose
 collected works are regarded as some of the greatest achievements in
