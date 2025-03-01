@@ -78,12 +78,16 @@ usethis::use_package("RANN")
 usethis::use_package("mgcv")
 usethis::use_package("scales")
 usethis::use_package("tibble")
-usethis::use_package("RColorBrewer")
+usethis::use_package("graphics")
+usethis::use_package("utils")
+usethis::use_package("stats")
+
+# usethis::use_package("RColorBrewer")
 
 load('data/example_cytof_data.rda')
 usethis::use_data(example_cytof_data, overwrite = T)
 
 
-devtools::check()
+# devtools::check()
 
 

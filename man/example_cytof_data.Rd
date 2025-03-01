@@ -8,7 +8,6 @@
 A single-cell table
 ...
 }
-}
 \source{
 The authors
 }

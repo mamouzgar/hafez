@@ -42,8 +42,6 @@ Example code to run the different functions are available with example
 data in ExampleCode/example_code.R. Install the package and follow the
 instructions in ExampleCode/example_code.R.
 
-<img src="other/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg" width="800px" />
-
 ## System requirements:
 
 Package Version tidyselect 1.2.1 dplyr 1.1.4 blob 1.2.4 graphics 4.4.2

@@ -6,6 +6,6 @@
 #'
 #' @format A single-cell table
 #'   ...
-#' }
+#'
  #' @source The authors
 "example_cytof_data"
