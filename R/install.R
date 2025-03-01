@@ -51,10 +51,11 @@ install_dependencies <- function() {
      # }
 
 }
+suppressMessages(install_dependencies())
 
-# Call the function during package loading
-.onLoad <- function(libname, pkgname) {
-     suppressMessages(install_dependencies())
-     # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
-
-}
+# # Call the function during package loading
+# .onLoad <- function(libname, pkgname) {
+#      suppressMessages(install_dependencies())
+#      # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
+#
+# }
