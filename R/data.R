@@ -8,4 +8,4 @@
 #'   ...
 #' }
  #' @source The authors
-"cytof_example_data"
+"example_cytof_data"

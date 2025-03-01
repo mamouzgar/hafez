@@ -51,6 +51,7 @@ write.csv(combined_table, file = "package_list.csv", row.names = FALSE)
 
 # Use usethis::use_package() for each package
 devtools::document()
+roxygen2::roxygenize()
 usethis::use_description(fields =list(
      "Authors" = utils::person(
           "Meelad", "Amouzgar",
@@ -77,7 +78,7 @@ usethis::use_package("RANN")
 usethis::use_package("mgcv")
 usethis::use_package("scales")
 usethis::use_package("tibble")
-# load('data/cytof_example_data.rda')
+# load('data/example_cytof_data.rds')
 usethis::use_data(example_cytof_data, overwrite = T)
 
 
