@@ -17,7 +17,7 @@ fillScale_phases_manualAll = scale_fill_manual(values = Phases_gate_Colors, name
 ## perform hafez landmark processing and trajectory inference
 ##################################################################################
 # start=Sys.time()
-hafez_input =  hafez::example_cytof_data
+hafez_input =  hafez::exa
 hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
 features_pc=paste0('PC',1:6)
 
