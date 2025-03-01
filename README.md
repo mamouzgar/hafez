@@ -29,17 +29,66 @@ interpretable landmark trajectory inference and systems modeling, Hafez.
 
 ## Installation:
 
-remotes::install_github(“mamouzgar/hafez”)
+``` r
+remotes::install_github("mamouzgar/hafez")
+```
 
-## Demo:
+    ## Using GitHub PAT from the git credential store.
 
-example code to run the different functions are available with example
-data in ExampleCode/example_code.R.
+    ## Downloading GitHub repo mamouzgar/hafez@HEAD
 
-## Instructions for use:
+    ## rlang        (1.1.4    -> 1.1.5   ) [CRAN]
+    ## cli          (3.6.3    -> 3.6.4   ) [CRAN]
+    ## pillar       (1.9.0    -> 1.10.1  ) [CRAN]
+    ## R6           (2.5.1    -> 2.6.1   ) [CRAN]
+    ## bit          (4.5.0    -> 4.5.0.1 ) [CRAN]
+    ## bit64        (4.5.2    -> 4.6.0-1 ) [CRAN]
+    ## zoo          (1.8-12   -> 1.8-13  ) [CRAN]
+    ## RcppArmad... (14.0.2-1 -> 14.2.3-1) [CRAN]
+    ## Rcpp         (1.0.13   -> 1.0.14  ) [CRAN]
+    ## bslib        (0.8.0    -> 0.9.0   ) [CRAN]
+    ## promises     (1.3.0    -> 1.3.2   ) [CRAN]
+    ## later        (1.3.2    -> 1.4.1   ) [CRAN]
+    ## fontawesome  (0.5.2    -> 0.5.3   ) [CRAN]
+    ## shiny        (1.9.1    -> 1.10.0  ) [CRAN]
+    ## jsonlite     (1.8.9    -> 1.9.0   ) [CRAN]
+    ## purrr        (1.0.2    -> 1.0.4   ) [CRAN]
+    ## chron        (2.3-61   -> 2.3-62  ) [CRAN]
+    ## RSQLite      (2.3.7    -> 2.3.9   ) [CRAN]
+    ## TH.data      (1.1-2    -> 1.1-3   ) [CRAN]
+    ## mvtnorm      (1.3-1    -> 1.3-3   ) [CRAN]
+    ## RcppThread   (2.1.7    -> 2.2.0   ) [CRAN]
+    ## RcppParallel (5.1.9    -> 5.1.10  ) [CRAN]
+    ## flexclust    (1.4-2    -> 1.5.0   ) [CRAN]
+    ## multcomp     (1.4-26   -> 1.4-28  ) [CRAN]
+    ## igraph       (2.1.1    -> 2.1.4   ) [CRAN]
+    ## emmeans      (1.10.5   -> 1.10.7  ) [CRAN]
 
-Install the package and follow the instructions in
-ExampleCode/example_code.R.
+    ## Installing 26 packages: rlang, cli, pillar, R6, bit, bit64, zoo, RcppArmadillo, Rcpp, bslib, promises, later, fontawesome, shiny, jsonlite, purrr, chron, RSQLite, TH.data, mvtnorm, RcppThread, RcppParallel, flexclust, multcomp, igraph, emmeans
+
+    ## 
+    ## The downloaded binary packages are in
+    ##  /var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T//RtmpKpwKAR/downloaded_packages
+    ## ── R CMD build ─────────────────────────────────────────────────────────────────
+    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpKpwKAR/remotesa37064819baf/mamouzgar-hafez-831f3ea/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpKpwKAR/remotesa37064819baf/mamouzgar-hafez-831f3ea/DESCRIPTION’ (357ms)
+    ##   ─  preparing ‘hafez’:
+    ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
+    ##   ─  checking for LF line-endings in source and make files and shell scripts
+    ##   ─  checking for empty or unneeded directories
+    ##   ─  looking to see if a ‘data/datalist’ file should be added
+    ##        NB: this package now depends on R (>= 3.5.0)
+    ##        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+    ##      serialize/load version 3 cannot be read in older versions of R.
+    ##      File(s) containing such objects:
+    ##        ‘hafez/data/ct.rda’ ‘hafez/data/cytof_example_data.rda’
+    ##        ‘hafez/data/example_glm_input.rda’
+    ##   ─  building ‘hafez_0.0.0.9000.tar.gz’
+    ##      
+    ## 
+
+Example code to run the different functions are available with example
+data in ExampleCode/example_code.R. Install the package and follow the
+instructions in ExampleCode/example_code.R.
 
 <img src="other/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg" width="800px" />
 
