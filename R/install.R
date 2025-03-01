@@ -55,7 +55,7 @@ install_dependencies <- function() {
      # }
 
 }
-suppressMessages(install_dependencies())
+# suppressMessages(install_dependencies())
 
 # Call the function during package loading
 .onLoad <- function(libname, pkgname) {
