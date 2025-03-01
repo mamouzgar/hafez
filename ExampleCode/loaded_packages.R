@@ -77,6 +77,8 @@ usethis::use_package("RANN")
 usethis::use_package("mgcv")
 usethis::use_package("scales")
 usethis::use_package("tibble")
+load('data/cytof_example_data.rda')
+usethis::use_data(example_cytof_data)
 
 
 devtools::check()
