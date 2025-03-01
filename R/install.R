@@ -22,15 +22,19 @@ install_dependencies <- function() {
      if (!file.exists(file_path)) {
           file.create(file_path)
      }
-     # Define the lines to be added
-     lines_to_add <- c(
-          "FC = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran",
-          "F77 = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran",
-          "FLIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11"
-     )
 
-     # Append the lines to the Makevars file
-     write(lines_to_add, file = file_path, append = TRUE)
+     if (file.exists(file_path)) {
+          # Define the lines to be added
+          lines_to_add <- c(
+               "FC = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran",
+               "F77 = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran",
+               "FLIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11"
+          )
+
+          # Append the lines to the Makevars file
+          write(lines_to_add, file = file_path, append = TRUE)
+     }
+
 
      ## install distutils and elpigraph forked repos
      if (!require("distutils", quietly = TRUE)){
@@ -53,14 +57,10 @@ install_dependencies <- function() {
 }
 suppressMessages(install_dependencies())
 
-# # Call the function during package loading
-# .onLoad <- function(libname, pkgname) {
-#      suppressMessages(install_dependencies())
-#      # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
-#
-# }
-# Export the function
-#' @export
-install_dependencies
-suppressMessages(install_dependencies())
+# Call the function during package loading
+.onLoad <- function(libname, pkgname) {
+     suppressMessages(install_dependencies())
+     # packageStartupMessage("Welcome to MyPackage! Enjoy using it.")
+
+}
 
