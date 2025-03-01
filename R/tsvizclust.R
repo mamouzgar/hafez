@@ -4,7 +4,10 @@
 #' @importFrom stats cmdscale
 #' @importFrom tidyr gather
 #' @importFrom dynutils scale_minmax
-
+#' @importFrom mgcv gam
+#' @importFrom dplyr group_modify
+#' @importFrom dplyr across
+#' @importFrom dplyr all_of
 
 
 # #################################################################################

@@ -37,17 +37,48 @@ write.csv(combined_table, file = "package_list.csv", row.names = FALSE)
 
 
 
-options(
-     usethis.description = list(
-          "Authors@R" = utils::person(
-               "Meelad", "Amouzgar",
-               email = "amouzgar@stanford.edu",
-          ),
+# options(
+     # usethis.description = list(
+     #      "Authors@R" = utils::person(
+     #           "Meelad", "Amouzgar",
+     #           email = "amouzgar@stanford.edu",
+     #      ),
+     #
+     #      Title = 'Hafez',
+     #      Description = 'Landmark trajectory inference and time-series analysis.',
+     #      Language =  "es"     )
+# )
 
-          Title = 'Hafez',
-          Description = 'Landmark trajectory inference and time-series analysis.',
-          Language =  "es"     )
-)
-usethis::use_description(fields = list(), check_name = TRUE, roxygen = TRUE)
+# Use usethis::use_package() for each package
+devtools::document()
+usethis::use_description(fields =list(
+     "Authors" = utils::person(
+          "Meelad", "Amouzgar",
+          email = "amouzgar@stanford.edu",
+     ),
+
+     Title = 'Hafez',
+     Description = 'Landmark trajectory inference and time-series analysis.',
+     Language =  "es"     ), check_name = TRUE, roxygen = TRUE)
 usethis::use_gpl3_license()
+usethis::use_pipe()
+usethis::use_package("ElPiGraph.R")
+usethis::use_package("dplyr")
+usethis::use_package("dtwclust")
+usethis::use_package("dynutils")
+usethis::use_package("emmeans")
+usethis::use_package("ggplot2")
+usethis::use_package("igraph")
+usethis::use_package("magrittr")
+usethis::use_package("multcomp")
+usethis::use_package("sqldf")
+usethis::use_package("tidyr")
+usethis::use_package("RANN")
+usethis::use_package("mgcv")
+usethis::use_package("scales")
+usethis::use_package("tibble")
+
+
+devtools::check()
+
 

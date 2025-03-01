@@ -40,6 +40,8 @@
 #' @importFrom stats p.adjust
 #' @importFrom multcomp glht
 #' @importFrom emmeans emmeans
+#' @importFrom tibble tibble
+
 #' @import ElPiGraph.R
 #' @import sqldf
 #' @import igraph
