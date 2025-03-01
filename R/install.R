@@ -33,8 +33,9 @@ install_dependencies <- function() {
      write(lines_to_add, file = file_path, append = TRUE)
 
      ## install distutils and elpigraph forked repos
-     remotes::install_github("mamouzgar/distutils", build_vignettes = FALSE)
-     remotes::install_github("mamouzgar/ElPiGraph.R", build_vignettes = FALSE)
+     devtools::install_github("mamouzgar/distutils", build_vignettes = FALSE)
+     devtools::install_github("mamouzgar/ElPiGraph.R", build_vignettes = FALSE)
+     # devtools::install_github("Albluca/ElPiGraph.R")
 
      # # Install terminal packages (Linux example)
      # if (Sys.info()["sysname"] == "Linux") {
