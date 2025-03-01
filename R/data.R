@@ -4,8 +4,8 @@
 #'
 #' A dataset containing example data for demonstration purposes.
 #'
-#' @format A single-cell data example:
+#' @format A single-cell table
 #'   ...
 #' }
-#' @source [cytof_example_data.rda]
+ #' @source The authors
 "cytof_example_data"
