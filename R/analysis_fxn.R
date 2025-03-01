@@ -6,11 +6,11 @@
 #' @importFrom graphics pairs
 #' @importFrom stats as.formula
 #' @importFrom stats coef
-#' @importFrom stats lag
+#' @importFrom dplyr lag
 #' @importFrom stats cov
 #' @importFrom stats dist
 #' @importFrom stats gaussian
-#' @importFrom stats lag
+#' @importFrom dplyr lag
 #' @importFrom stats mahalanobis
 #' @importFrom stats median
 #' @importFrom stats na.omit
@@ -316,15 +316,17 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           density.res = density(dataset$PSEUDOTIME_TO_DBPN, from = myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
           dataset.frame(x = density.res$x, y  =density.res$y)
           density.df = data.frame(x = density.res$x, y  =density.res$y)
-          density_df_01 = density.df %>% dplyr::filter(x>=0 & x<=1) %>%
-               mutate(y_normalized = y/sum(y),
-                      pseudotime_bin_01_min =  stats::lag(x) %>% ifelse(is.na(.), -0.01, .),
+          density_df_01 = density.df %>%
+               # dplyr::filter(x>=0 & x<=1) %>%
+               dplyr::mutate(y_normalized = y/sum(y),
+                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), -0.01, .),
                       pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
 
                       cumulative.sum = base::cumsum(y_normalized),
-                      pseudotime_density_min = stats::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+                      pseudotime_density_min = dplyr::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
                       pseudotime_density_max = cumulative.sum,
                       pseudotime_bins_density_based = 1:nrow(.))
+
 
           ## SQL based join on a range from S/O
           ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
@@ -383,15 +385,18 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
 
           density_df_01 = density.df %>%
                # dplyr::filter(x>=0 & x<=1) %>%
-               mutate(y_normalized = y/sum(y),
-                      pseudotime_bin_01_min =  lag(x) %>% ifelse(is.na(.), -0.01, .),
+               dplyr::mutate(y_normalized = y/sum(y),
+                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), -0.01, .),
                       pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
 
                       cumulative.sum = cumsum(y_normalized),
-                      pseudotime_density_min = lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
+                      pseudotime_density_min = dplyr::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
                       pseudotime_density_max = cumulative.sum,
                       pseudotime_bins_density_based = 1:nrow(.))
           # print(head(density_df_01))
+          dn_orig <<-density.df
+          dn_TEST <<-density_df_01
+          dataset_FULL_TEST<<-dataset_FULL
           ## SQL based join on a range from S/O
           ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
           ## 'from' and 'to' are in quotes because it's reserved language for SQL. Here we use pseudotime_bin_01.min and pseudotime_bin_01.max
@@ -400,12 +405,39 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           # cyclingCells_densityBins = cyclingCells_FULL # %>% dplyr::select(-time)
           # print(dim(cyclingCells_densityBins))
           # SQLbins = as_tibble(sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.pseudotime_bins_density_based from cyclingCells_densityBins
-          SQLbins = tibble::as_tibble(sqldf::sqldf("select dataset_FULL.PSEUDOTIME_TO_DBPN, density_df_01.* from dataset_FULL
-                                                   join density_df_01 on dataset_FULL.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min and
-                                                   dataset_FULL.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max"))
-          # print(head(SQLbins))
-          dataset_FULL = dataset_FULL %>%
-               dplyr::bind_cols(SQLbins %>% dplyr::select(-PSEUDOTIME_TO_DBPN))
+
+
+          # SQLbins = tibble::as_tibble(sqldf::sqldf("select dataset_FULL.PSEUDOTIME_TO_DBPN, density_df_01.* from dataset_FULL
+          #                                          join density_df_01 on dataset_FULL.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min and
+          #                                          dataset_FULL.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max"))
+          dataset_FULL= tibble::as_tibble(sqldf::sqldf("SELECT
+                                                     f.*,  -- Select all columns from dataset_FULL
+                                                    d.pseudotime_bin_01_min,
+                                                    d.pseudotime_bin_01_max,
+                                                    d.pseudotime_bins_density_based,
+                                                    d.pseudotime_density_min,
+                                                    d.pseudotime_density_max
+                                                  FROM
+                                                      dataset_FULL f
+                                                  LEFT JOIN
+                                                      density_df_01 d
+                                                  ON
+                                                      f.PSEUDOTIME_TO_DBPN BETWEEN d.pseudotime_bin_01_min AND d.pseudotime_bin_01_max;
+                                                  "))
+          # dataset_FULL=tibble::as_tibble(sqldf::sqldf("
+          #                                                SELECT dataset_FULL.*, density_df_01.*
+          #                                                FROM dataset_FULL
+          #                                                LEFT JOIN density_df_01
+          #                                                ON dataset_FULL.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min
+          #                                                AND dataset_FULL.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max
+          #                                              "))
+
+
+
+          # SQLTEST <<-SQLbins
+          dataset_FULL.test<<-dataset_FULL
+          # dataset_FULL = dataset_FULL %>%
+          #      dplyr::bind_cols(SQLbins %>% dplyr::select(-PSEUDOTIME_TO_DBPN))
 
           # cyclingCells.PST_ADJUSTMENT = cyclingCells_FULL %>%
           #      group_by(pseudotime_bins_density_based) %>%
