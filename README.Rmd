@@ -35,10 +35,12 @@ Install the package and follow the instructions in ExampleCode/example_code.R.
 
 
 
-### image credit:
-https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hafez_Tomb_2.Shiraz-Iran.jpg/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg
-https://en.wikipedia.org/wiki/File:Roof_hafez_tomb.jpg
-https://www.iranontrip.ir/public/user_data/images/Hafez(2).jpg 
+
+```{r, out.width = "800px", echo=FALSE}
+knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg")
+```
+
+
 
 ## System requirements: 
 Package	Version
@@ -140,6 +142,10 @@ sqldf	0.4.11
 zoo	1.8.12
 pkgconfig	2.0.3
 
+### image credit:
+https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hafez_Tomb_2.Shiraz-Iran.jpg/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg
+https://en.wikipedia.org/wiki/File:Roof_hafez_tomb.jpg
+https://www.iranontrip.ir/public/user_data/images/Hafez(2).jpg 
 
 
 

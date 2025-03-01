@@ -41,11 +41,7 @@ data in ExampleCode/example_code.R.
 Install the package and follow the instructions in
 ExampleCode/example_code.R.
 
-### image credit:
-
-<https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hafez_Tomb_2.Shiraz-Iran.jpg/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg>
-<https://en.wikipedia.org/wiki/File:Roof_hafez_tomb.jpg>
-<https://www.iranontrip.ir/public/user_data/images/Hafez(2).jpg>
+<img src="other/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg" width="800px" />
 
 ## System requirements:
 
@@ -68,3 +64,9 @@ bit64 4.5.2 ggrepel 0.9.6 clue 0.3.66 foreach 1.5.2 tidyr 1.3.1 dynutils
 pillar 1.9.0 htmltools 0.5.8.1 R6 2.5.1 stats 4.4.2 shiny 1.9.1 lattice
 0.22.6 gsubfn 0.7 dtwclust 6.0.0 memoise 2.0.1 httpuv 1.6.15 class
 7.3.22 Rcpp 1.0.13 coda 0.19.4.1 sqldf 0.4.11 zoo 1.8.12 pkgconfig 2.0.3
+
+### image credit:
+
+<https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hafez_Tomb_2.Shiraz-Iran.jpg/1962px-Hafez_Tomb_2.Shiraz-Iran.jpg>
+<https://en.wikipedia.org/wiki/File:Roof_hafez_tomb.jpg>
+<https://www.iranontrip.ir/public/user_data/images/Hafez(2).jpg>
