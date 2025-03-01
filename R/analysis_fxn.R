@@ -472,7 +472,7 @@ pseudotime_mapped_mahalanobis_analysis = function(dataset, method = c('landmark_
 hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column = NULL, dataset.subset_to_use = NULL ,column_to_normalize=NULL, bandwidth = 'nrd0', adjust.value = 1, RETURN_DENSITY_COORDINATES = FALSE, new_dbp_name='PSEUDOTIME_NORMALIZED'){
      dataset$x = NULL
      dataset$y = NULL
-     ˆdataset$y_normalized = NULL
+     dataset$y_normalized = NULL
      dataset$pseudotime_bin_01_min = NULL
      dataset$pseudotime_bin_01_max = NULL
      dataset$cumulative.sum = NULL

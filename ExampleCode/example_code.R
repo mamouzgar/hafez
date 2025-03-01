@@ -17,7 +17,7 @@ fillScale_phases_manualAll = scale_fill_manual(values = Phases_gate_Colors, name
 ## perform hafez landmark processing and trajectory inference
 ##################################################################################
 # start=Sys.time()
-hafez_input =  hafez:::example_cytof_data
+hafez_input =  hafez::example_cytof_data
 hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
 features_pc=paste0('PC',1:6)
 
@@ -39,7 +39,7 @@ hafez_output
 ## DBPN: density based pseudotime normalization
 ############################################################
 ## perform pseudotime normalization on the newly computed pseudotime with the toy dataset
-hafez_output = hafez_DBPN(dataset = hafez_output, dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'LM_TI_path1',adjust.value = 0.5)
+hafez_output = hafez_DBPN(dataset  = hafez_output, dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'LM_TI_path1',adjust.value = 0.5)
 
 ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = LM_TI_path1))+
      theme_bw() +
