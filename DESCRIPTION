@@ -23,10 +23,8 @@ Imports:
     mgcv,
     multcomp,
     RANN,
+    RColorBrewer,
     scales,
     sqldf,
     tibble,
     tidyr
-Depends: 
-    R (>= 2.10)
-LazyData: true

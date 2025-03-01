@@ -18,6 +18,7 @@
 #' @importFrom stats time
 #' @importFrom utils capture.output
 #' @importFrom utils head
+#'
 
 #' @title hafezify
 #' @description Takes as input your dataframe/tibble and outputs the same object with necessary columns to run other hafez package functions.
