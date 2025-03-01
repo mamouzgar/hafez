@@ -27,7 +27,11 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 ## Installation: 
 ```{r}
-remotes::install_github("mamouzgar/hafez")
+if (!require("devtools", quietly = TRUE)){
+     install.packages("devtools")
+}
+devtools::install_github("mamouzgar/hafez")
+
 
 ```
 Example code to run the different functions are available with example data in ExampleCode/example_code.R. Install the package and follow the instructions in ExampleCode/example_code.R.
