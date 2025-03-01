@@ -13,7 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/Hafez_doc.jpg")
 ```
 
+
 "Hafez" is a time-series analysis framework the performs landmark trajectory inference and trajectory analysis strategies including cell density-based pseudotime normalization (DBPN), time-series distance (TSD) clustering, and post-trajectory analysis methods that leverage the landmark framework to study dynamic biological process through the lens of normal, healthy progression. It is fast, extensible, and generalizable to different single-cell omics and systems. 
+
 
 
 ```{r, out.width = "800px", echo=FALSE}
@@ -24,15 +26,11 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 
 ## Installation: 
+```{r}
 remotes::install_github("mamouzgar/hafez")
 
-## Demo: 
-example code to run the different functions are available with example data in ExampleCode/example_code.R.
-
-
-## Instructions for use: 
-Install the package and follow the instructions in ExampleCode/example_code.R.
-
+```
+Example code to run the different functions are available with example data in ExampleCode/example_code.R. Install the package and follow the instructions in ExampleCode/example_code.R.
 
 
 
