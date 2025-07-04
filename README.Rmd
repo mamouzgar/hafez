@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, out.width = "600px", echo=FALSE}
-knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/Hafez_doc.jpg")
+#knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/Hafez_doc.jpg")
 ```
 
 
@@ -26,13 +26,20 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 
 ## Installation: 
+To install hafez, please download the install.R script and from Rstudio you can run the command:
 ```{r,  eval=FALSE}
-To install hafez, please download the install.R script and from Rstudio, run the command:
 source('~/Downloads/install.R')
-
 
 ```
 Example code to run the different functions are available with example data in ExampleCode/example_code.R. Install the package and follow the instructions in ExampleCode/example_code.R.
+
+
+Trajectory inference algorithms have different advantages and disadvantages, and you may choose to use a different algorithm for lineage detection or have some other continuous metric of interest but want to use Hafez's analysis toolkit without the trajectory inference functions (eg, using trajectories you've previously computed with other algorithms). A simplified version of the package that excludes the software for trajectory detection functions can be installed using our mini version, hafezjoon. This installation is simpler, containing fewer dependencies by omitting the trajectory inference algorithms.
+
+```{r,  eval=FALSE}
+devtools::install_github('mamouzgar/hafezjoon')
+
+```
 
 
 

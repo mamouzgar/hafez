@@ -608,6 +608,37 @@ find_closest_neighbor_distance = function(full_data, LM_col=NULL, LM_group, feat
 }
 
 
+########################################################################################
+## other functions
+########################################################################################
+
+#' @title UMAP_WRAPPER
+#' @noRd
+UMAP_WRAPPER  = function(input_data, features, n_components = 2, n_neighbors=15, spread = 1, min_dist = 0.01, scale= T, center = T , init_cols=NULL, verbose = T,...) {
+     if (!is.null(init_cols)){
+          init_m = input_data %>% ungroup() %>% dplyr::select(all_of(init_cols)) %>% as.matrix()
+     } else {
+          init_m = 'spectral'
+     }
+     umap.res = uwot::umap(input_data %>% ungroup() %>% dplyr::select(all_of(features))%>%scale( .,center = center, scale = scale),
+                           n_components = n_components,
+                           n_neighbors = n_neighbors,
+                           spread = spread,
+                           min_dist = min_dist,
+                           init = init_m,
+                           verbose = verbose,...) ## already scaled
+     dm.df =  bind_cols(input_data, umap.res %>% data.frame() %>% dplyr::rename(UMAP1=X1,UMAP2=X2))
+     return(dm.df)
+}
+
+
+
+
+
+
+
+
+
 
 
 # MEELAD_WRAPPER = function(FULL_DATA, features, features_for_start_cell_id, PERFORM_OOS=FALSE, OOS_idx=NULL,return_pseudotime_only=TRUE,NumNodes=5,lambda = 0.01, mu = 0.01, branch_type = c('tree','curve','circle'),TRAINING_VARIABLE='WT', return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c('celltype','HSC')){
