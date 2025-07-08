@@ -13,14 +13,16 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
     dplyr,
-    dtwclust,
+    remotes,
     dynutils,
-    ElPiGraph.R,
+    irlba,
+    ggforce,
+    segmented,
+    ggpubr,
     emmeans,
     ggplot2,
     graphics,
     igraph,
-    magrittr,
     mgcv,
     multcomp,
     RANN,
@@ -29,7 +31,15 @@ Imports:
     stats,
     tibble,
     tidyr,
-    utils
+    tidyverse,
+    magrittr,
+    utils,
+    dtwclust,
+    distutils,
+    ElPiGraph.R
+Remotes:
+    mamouzgar/distutils,
+    mamouzgar/ElPiGraph.R
 Depends: 
     R (>= 2.10)
 LazyData: true

@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, out.width = "600px", echo=FALSE}
 #knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/Hafez_doc.jpg")
+#knitr::knit("~/phd/Rpackages/hafez/README.Rmd")
+
 ```
 
 

@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(hafez)
+library(patchwork)
 
 features_cellcycle  = c( 'dsDNA', 'pH3_s10','CDT1', 'Geminin', 'PLK1', 'DNA2', 'CyclinB1', 'PCNA', 'Ki67','SLBP','IdU','pRb_S780')%>% unique()
 
@@ -39,7 +40,6 @@ hafez_output
 ## DBPN: density based pseudotime normalization
 ############################################################
 ## perform pseudotime normalization on the newly computed pseudotime with the toy dataset
-hafez_output = hafez::hafez_DBPN(dataset  = hafez_output,  dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'LM_TI_path1',adjust.value = 0.5)
 hafez_output = hafez_DBPN(dataset  = hafez_output,  dataset.subset_to_use = hafez_output %>%dplyr::filter(condition == 'WT'),column_to_normalize = 'LM_TI_path1',adjust.value = 0.5)
 
 ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = LM_TI_path1))+
