@@ -35,11 +35,13 @@ Imports:
     magrittr,
     utils,
     dtwclust,
+    patchwork,
     distutils,
     ElPiGraph.R
 Remotes:
     mamouzgar/distutils,
-    mamouzgar/ElPiGraph.R
+    mamouzgar/ElPiGraph.R,
+    asardaes/dtwclust
 Depends: 
     R (>= 2.10)
 LazyData: true

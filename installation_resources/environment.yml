@@ -1,0 +1,30 @@
+name: hafez_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base=4.3.3      # or latest stable
+  - r-devtools
+  - r-rbibutils
+  - r-proxy
+  - r-tidyverse
+  - r-data.table
+  - r-remotes
+  - compilers         # conda-forge's toolchain (portable)
+  - llvm-openmp       # for parallelism support
+  - make              # needed to build R packages from source
+  - pkg-config
+  - libxml2
+  - zlib
+  - pandoc
+  - curl
+  - r-irlba
+  - r-ggplot2
+  - r-ggforce
+  - r-segmented
+  - r-ggpubr
+  - r-remotes
+  - pip
+  # Optional: you can include system-level deps if needed later
+  - libxml2
+  #- liblapackcond
