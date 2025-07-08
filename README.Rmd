@@ -28,20 +28,49 @@ The name, Hafez, is inspired by the 14th century Persian poet whose collected wo
 
 
 ## Installation: 
-To install hafez, please download the install.R script and from Rstudio you can run the command:
-```{r,  eval=FALSE}
-source('~/Downloads/install.R')
+
+It is highly recommended to use conda environments and reticulate for Hafez to avoid conflicts and secure your environment. We provide an `environment.yml` file that creates a conda environment with the necessary base software.
+
+Based on this recommended, please either download the "./installation_resources/environment.yml" file or clone the Hafez repo, and follow these instructions:
+
+1. In a new terminal, run:
+```{bash,  eval=FALSE}
+conda env create --no-default-packages -f ~/Downloads/environment.yml
+conda activate hafez_env
+pip install hafezR
 
 ```
+
+2. Open Rstudio and activate the conda environment using reticulate. You may need to first install the R packages reticulate and remotes if you don't have them already.
+```{r,  eval=FALSE}
+
+# List of required packages
+required_packages <- c("remotes", "reticulate")
+
+# Check and install any that are missing
+installed <- required_packages %in% rownames(installed.packages())
+if (any(!installed)) {
+  install.packages(required_packages[!installed])
+}
+```
+
+
+3. In Rstudio, activate the conda environment and install hafez:
+```{r,  eval=FALSE}
+reticulate::use_condaenv('hafez_env')
+
+devtools::install_github('mamouzgar/hafez')
+
+```
+
+<!-- If you are having difficulty you might need to run this in terminal before setting up and activating your conda environment: -->
+<!-- ```{bash,  eval=FALSE} -->
+
+<!-- brew install gcc pkg-config icu4c udunits abseil cmake cmake-docs -->
+<!-- export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig" -->
+<!-- ``` -->
+
 Example code to run the different functions are available with example data in ExampleCode/example_code.R. Install the package and follow the instructions in ExampleCode/example_code.R.
-
-
-Trajectory inference algorithms have different advantages and disadvantages, and you may choose to use a different algorithm for lineage detection or have some other continuous metric of interest but want to use Hafez's analysis toolkit without the trajectory inference functions (eg, using trajectories you've previously computed with other algorithms). A simplified version of the package that excludes the software for trajectory detection functions can be installed using our mini version, hafezjoon. This installation is simpler, containing fewer dependencies by omitting the trajectory inference algorithms.
-
-```{r,  eval=FALSE}
-devtools::install_github('mamouzgar/hafezjoon')
-
-```
 
 
 
@@ -147,9 +176,5 @@ coda	0.19.4.1
 sqldf	0.4.11
 zoo	1.8.12
 pkgconfig	2.0.3
-
-
-
-
 
 ```
