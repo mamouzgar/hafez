@@ -1,146 +1,185 @@
----
-title: "README"
-output: github_document
-date: "2025-02-28"
----
+README
+================
+2025-02-28
 
+“Hafez” is a time-series analysis framework the performs landmark
+trajectory inference and trajectory analysis strategies including cell
+density-based pseudotime normalization (DBPN), time-series distance
+(TSD) clustering, and post-trajectory analysis methods that leverage the
+landmark framework to study dynamic biological process through the lens
+of normal, healthy progression. It is fast, extensible, and
+generalizable to different single-cell omics and systems.
 
+<img src="other/cartoon.jpg" width="800px" />
 
+The name, Hafez, is inspired by the 14th century Persian poet whose
+collected works are regarded as some of the greatest achievements in
+Iranian literature. It is tradition to delve into the mysteries of fate
+and destiny through “faal-e-Hafez’’ (divination) when faced with
+challenges, choice, questions, or for entertainment. Hafez’s poetry
+intends to reveal our fate or destiny during transitions in life,
+drawing parallels to the field of single-cell trajectory inference that
+maps cell fate and reveals cell state transitions. The word Hafez
+literally translates to”one who remembers” or “keeps in memory” - which
+is fitting considering cell fate mechanisms are often encoded earlier in
+differentiation and remembered as cells meet their destiny. Hafez often
+ponders the interconnectedness of human actions (experimental) and
+cosmic forces (computational) to interpret the world, so we pay homage
+to his legacy by naming our integrated experimental and computational
+method for interpretable landmark trajectory inference and systems
+modeling, Hafez.
 
+## Installation:
 
+It is highly recommended to use conda environments and reticulate for
+Hafez to avoid conflicts and secure your environment. We provide an
+`environment.yml` file that creates a conda environment with the
+necessary base software.
 
+Based on this recommended, please either download the
+“./installation_resources/environment.yml” file or clone the Hafez repo,
+and follow these instructions:
 
-"Hafez" is a time-series analysis framework the performs landmark trajectory inference and trajectory analysis strategies including cell density-based pseudotime normalization (DBPN), time-series distance (TSD) clustering, and post-trajectory analysis methods that leverage the landmark framework to study dynamic biological process through the lens of normal, healthy progression. It is fast, extensible, and generalizable to different single-cell omics and systems. 
+1.  In a new terminal, run:
 
-
-
-<div class="figure">
-<img src="other/cartoon.jpg" alt="plot of chunk unnamed-chunk-2" width="800px" />
-<p class="caption">plot of chunk unnamed-chunk-2</p>
-</div>
-
-The name, Hafez, is inspired by the 14th century Persian poet whose collected works are regarded as some of the greatest achievements in Iranian literature. It is tradition to delve into the mysteries of fate and destiny through “faal-e-Hafez'' (divination) when faced with challenges, choice, questions, or for entertainment. Hafez’s poetry intends to reveal our fate or destiny during transitions in life, drawing parallels to the field of single-cell trajectory inference that maps cell fate and reveals cell state transitions. The word Hafez literally translates to "one who remembers" or "keeps in memory" - which is fitting considering cell fate mechanisms are often encoded earlier in differentiation and remembered as cells meet their destiny. Hafez often ponders the interconnectedness of human actions (experimental) and cosmic forces (computational) to interpret the world, so we pay homage to his legacy by naming our integrated experimental and computational method for interpretable landmark trajectory inference and systems modeling, Hafez.
-
-
-## Installation: 
-To install hafez, please download the install.R script and from Rstudio you can run the command:
-
-``` r
-source('~/Downloads/install.R')
+``` bash
+conda env create --no-default-packages -f ~/Downloads/environment.yml
+conda activate hafez_env
+pip install hafezR
 ```
-Example code to run the different functions are available with example data in ExampleCode/example_code.R. Install the package and follow the instructions in ExampleCode/example_code.R.
 
-
-Trajectory inference algorithms have different advantages and disadvantages, and you may choose to use a different algorithm for lineage detection or have some other continuous metric of interest but want to use Hafez's analysis toolkit without the trajectory inference functions (eg, using trajectories you've previously computed with other algorithms). A simplified version of the package that excludes the software for trajectory detection functions can be installed using our mini version, hafezjoon. This installation is simpler, containing fewer dependencies by omitting the trajectory inference algorithms.
-
+2.  Open Rstudio and activate the conda environment using reticulate.
+    You may need to first install the R packages reticulate and remotes
+    if you don’t have them already.
 
 ``` r
-devtools::install_github('mamouzgar/hafezjoon')
+# List of required packages
+required_packages <- c("remotes", "reticulate")
+
+# Check and install any that are missing
+installed <- required_packages %in% rownames(installed.packages())
+if (any(!installed)) {
+  install.packages(required_packages[!installed])
+}
 ```
 
-
-
-
-
-## System: 
+3.  In Rstudio, activate the conda environment and install hafez:
 
 ``` r
-Package	Version
-tidyselect	1.2.1
-dplyr	1.1.4
-blob	1.2.4
-graphics	4.4.2
-fastmap	1.2.0
-TH.data	1.1.2
-ElPiGraph.R	1.0.0
-promises	1.3.0
-shinyjs	2.1.0
-digest	0.6.37
-estimability	1.5.1
-mime	0.12
-lifecycle	1.0.4
-cluster	2.1.6
-survival	3.7.0
-base	4.4.2
-RSQLite	2.3.7
-magrittr	2.0.3
-compiler	4.4.2
-rlang	1.1.4
-tools	4.4.2
-igraph	2.1.1
-utf8	1.2.4
-bit	4.5.0
-plyr	1.8.9
-methods	4.4.2
-multcomp	1.4.26
-purrr	1.0.2
-desc	1.4.3
-grid	4.4.2
-stats4	4.4.2
-fansi	1.0.6
-grDevices	4.4.2
-xtable	1.8.4
-colorspace	2.1.1
-ggplot2	3.5.1
-emmeans	1.10.5
-scales	1.3.0
-iterators	1.0.14
-MASS	7.3.61
-cli	3.6.3
-mvtnorm	1.3.1
-crayon	1.5.3
-chron	2.3.61
-utils	4.4.2
-generics	0.1.3
-remotes	2.5.0
-RcppParallel	5.1.9
-rstudioapi	0.17.1
-RSpectra	0.16.2
-reshape2	1.4.4
-DBI	1.2.3
-cachem	1.1.0
-proxy	0.4.27
-stringr	1.5.1
-hafez	0.1.0
-modeltools	0.2.23
-datasets	4.4.2
-splines	4.4.2
-assertthat	0.2.1
-parallel	4.4.2
-proxyC	0.4.1
-vctrs	0.6.5
-Matrix	1.7.1
-sandwich	3.1.1
-bit64	4.5.2
-ggrepel	0.9.6
-clue	0.3.66
-foreach	1.5.2
-tidyr	1.3.1
-dynutils	1.0.11
-proto	1.0.0
-glue	1.8.0
-dtw	1.23.1
-codetools	0.2.20
-flexclust	1.4.2
-stringi	1.8.4
-gtable	0.3.6
-later	1.3.2
-munsell	0.5.1
-tibble	3.2.1
-pillar	1.9.0
-htmltools	0.5.8.1
-R6	2.5.1
-stats	4.4.2
-shiny	1.9.1
-lattice	0.22.6
-gsubfn	0.7
-dtwclust	6.0.0
-memoise	2.0.1
-httpuv	1.6.15
-class	7.3.22
-Rcpp	1.0.13
-coda	0.19.4.1
-sqldf	0.4.11
-zoo	1.8.12
-pkgconfig	2.0.3
+reticulate::use_condaenv('hafez_env')
+
+devtools::install_github('mamouzgar/hafez')
+```
+
+<!-- If you are having difficulty you might need to run this in terminal before setting up and activating your conda environment: -->
+<!-- ```{bash,  eval=FALSE} -->
+<!-- brew install gcc pkg-config icu4c udunits abseil cmake cmake-docs -->
+<!-- export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig" -->
+<!-- ``` -->
+
+Example code to run the different functions are available with example
+data in ExampleCode/example_code.R. Install the package and follow the
+instructions in ExampleCode/example_code.R.
+
+## System:
+
+``` r
+Package Version
+tidyselect  1.2.1
+dplyr   1.1.4
+blob    1.2.4
+graphics    4.4.2
+fastmap 1.2.0
+TH.data 1.1.2
+ElPiGraph.R 1.0.0
+promises    1.3.0
+shinyjs 2.1.0
+digest  0.6.37
+estimability    1.5.1
+mime    0.12
+lifecycle   1.0.4
+cluster 2.1.6
+survival    3.7.0
+base    4.4.2
+RSQLite 2.3.7
+magrittr    2.0.3
+compiler    4.4.2
+rlang   1.1.4
+tools   4.4.2
+igraph  2.1.1
+utf8    1.2.4
+bit 4.5.0
+plyr    1.8.9
+methods 4.4.2
+multcomp    1.4.26
+purrr   1.0.2
+desc    1.4.3
+grid    4.4.2
+stats4  4.4.2
+fansi   1.0.6
+grDevices   4.4.2
+xtable  1.8.4
+colorspace  2.1.1
+ggplot2 3.5.1
+emmeans 1.10.5
+scales  1.3.0
+iterators   1.0.14
+MASS    7.3.61
+cli 3.6.3
+mvtnorm 1.3.1
+crayon  1.5.3
+chron   2.3.61
+utils   4.4.2
+generics    0.1.3
+remotes 2.5.0
+RcppParallel    5.1.9
+rstudioapi  0.17.1
+RSpectra    0.16.2
+reshape2    1.4.4
+DBI 1.2.3
+cachem  1.1.0
+proxy   0.4.27
+stringr 1.5.1
+hafez   0.1.0
+modeltools  0.2.23
+datasets    4.4.2
+splines 4.4.2
+assertthat  0.2.1
+parallel    4.4.2
+proxyC  0.4.1
+vctrs   0.6.5
+Matrix  1.7.1
+sandwich    3.1.1
+bit64   4.5.2
+ggrepel 0.9.6
+clue    0.3.66
+foreach 1.5.2
+tidyr   1.3.1
+dynutils    1.0.11
+proto   1.0.0
+glue    1.8.0
+dtw 1.23.1
+codetools   0.2.20
+flexclust   1.4.2
+stringi 1.8.4
+gtable  0.3.6
+later   1.3.2
+munsell 0.5.1
+tibble  3.2.1
+pillar  1.9.0
+htmltools   0.5.8.1
+R6  2.5.1
+stats   4.4.2
+shiny   1.9.1
+lattice 0.22.6
+gsubfn  0.7
+dtwclust    6.0.0
+memoise 2.0.1
+httpuv  1.6.15
+class   7.3.22
+Rcpp    1.0.13
+coda    0.19.4.1
+sqldf   0.4.11
+zoo 1.8.12
+pkgconfig   2.0.3
 ```
