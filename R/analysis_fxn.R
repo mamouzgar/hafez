@@ -608,6 +608,43 @@ find_closest_neighbor_distance = function(full_data, LM_col=NULL, LM_group, feat
 }
 
 
+
+
+#' @title hafez_detect_inflections
+#' @description Detects inflection points along smoothed data using a melted format dataframe (eg, output of hafez_smoothing()).
+#' Columns must be x (pseudotime), y (fitted value), and your relevant conditions of interest that you want to stratify (eg, donor, treatment, etc).
+#' @export
+hafez_detect_inflections = function(dataset, groups=c()){
+     if (!any(c('x','y') %in% colnames(dataset)) ){
+          stop('Missing pseudotime and fit values as columns x and y, respectively.')
+     }
+
+     hafez_infl_points=dataset %>%
+          group_by(across(all_of(c(groups, 'feature','x')))) %>%
+          mutate(total=n())
+     if (any(hafez_infl_points$total>1)){
+          message('You have multiple x-y pairs in a group. Detected ', max(hafez_infl_points$total),' fitted points for the same pseudotime (x) value in the same groups.')
+          stop("Your data has multiple x-y pairs across your specified (or unspecified) groups. Please either \n (1) include additional groups to split the data,\n (2) aggregate across your groups by calculating the average fit value (y) along the pseudotime (x), \n (3) or recalculate your smoothed distributions.")
+     }
+
+     hafez_infl_points=hafez_infl_points %>%
+          arrange(across(all_of(c(groups, 'feature','x')))) %>%
+          group_by(across(all_of(c(groups, 'feature')))) %>%
+          mutate(difference_y = c(NA,diff(y)),
+                 difference_x = c(NA, diff(x)),
+          ) %>%
+          ungroup() %>%
+          mutate(slope = difference_y/difference_x,
+          ) %>%
+          group_by(across(all_of(c(groups, 'feature')))) %>%
+          mutate(slope_change = sign(slope) != lead(sign(slope))) %>%
+          ungroup() %>%
+          mutate(slope_change_directionality = sign(lead(slope)) %>% ifelse(is.na(.),.[length(.)-1],.),
+                 # pst_01 = pst %%1
+                 )
+     return(hafez_infl_points)
+}
+
 ########################################################################################
 ## other functions
 ########################################################################################

@@ -210,10 +210,28 @@ ggplot(ts_res$dDR, aes(x= dDR1, y =dDR2, color = dDR_cluster))+
 
 
 ## compute smoothed expression patterns and perform TSD clustering
-exp_patterns = hafez_smoothing(hafez_output,groups = c('condition','timepoint'),features = features_cellcycle,pseudotime_column = 'PSEUDOTIME_NORMALIZED')
+exp_patterns = hafez_smoothing(hafez_output,groups = c('condition'),features = features_cellcycle,pseudotime_column = 'PSEUDOTIME_NORMALIZED')
 ggplot(exp_patterns, aes(x=pst ,y = y, color =feature))+
      geom_line()+
      facet_wrap(~condition)
+
+
+## detect inflection points from smoothed distributions (requires long-format data)
+infl_points=hafez_detect_inflections(dataset = exp_patterns,groups = 'condition')
+
+## errors intentionally to show that it won't work if there are multiple x-y pairs if all the necessary groups to stratify by are not specified.
+hafez_detect_inflections(dataset = exp_patterns) ## ERRORS
+
+## plot inflections
+infl_points_wt = infl_points %>% dplyr::filter(condition=='WT')
+ggplot(infl_points_wt %>% dplyr::filter(feature =='CyclinB1'), aes(x=x, y=y))+
+     theme_bw()+
+     # geom_point() +
+     geom_point(aes(color= factor(slope_change_directionality)))+
+     geom_vline(data=infl_points_wt %>% dplyr::filter(feature =='CyclinB1',slope_change==T), aes(xintercept =x))
+
+
+## TSD embedding and clustering
 ts_res_exp = hafez_tsvz(exp_patterns,groups = c('condition','timepoint','feature'), approach = 'density',k = c(2:12),return_dDRclust = F)
 
 ggplot(ts_res_exp$dDR, aes(x=dDR1, y=dDR2, color = dDR_cluster))+

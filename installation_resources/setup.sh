@@ -11,3 +11,4 @@ conda env create --no-default-packages -f environment.yml
 
 # --- Step 4: Activate environment (for interactive sessions) ---
 echo "To activate the environment, run: conda activate hafez_env"
+
