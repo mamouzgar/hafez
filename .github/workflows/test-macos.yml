@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   test-macos:
-    runs-on: macos-13  # Apple Silicon or Intel — GitHub manages which
+    runs-on: macos-13
+    env:
+      GITHUB_PAT: ${{ secrets.Hafez_GITHUB_PAT }}
     steps:
       - uses: actions/checkout@v3
 
