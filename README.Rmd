@@ -3,6 +3,7 @@ title: "README"
 output: github_document
 date: "2025-02-28"
 ---
+![macOS Build](https://github.com/mamouzgar/hafez/actions/workflows/test-macos.yml/badge.svg)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
