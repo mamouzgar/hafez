@@ -1,8 +1,25 @@
 
+## If you haven't already, please follow the download instructions. You may need to activate your conda environment.
+# List of required packages
+required_packages <- c("remotes", "reticulate")
+
+# Check and install any that are missing
+installed <- required_packages %in% rownames(installed.packages())
+if (any(!installed)) {
+     install.packages(required_packages[!installed])
+}
+reticulate::use_condaenv('hafez_env')
+
+remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
+
+
+## load packages
 library(tidyverse)
 library(hafez)
 library(patchwork)
 
+
+## load variables and color scales
 features_cellcycle  = c( 'dsDNA', 'pH3_s10','CDT1', 'Geminin', 'PLK1', 'DNA2', 'CyclinB1', 'PCNA', 'Ki67','SLBP','IdU','pRb_S780')%>% unique()
 
 Phases_gate =  c('G1','S','G2','M')
