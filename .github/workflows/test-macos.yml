@@ -21,8 +21,15 @@ jobs:
       - name: Install Python dependencies
         run: pip install hafezR
 
+      # Install devtools package (needed to run devtools::test())
+      - name: Install R packages
+        run: |
+          Rscript -e 'install.packages("devtools", repos="https://cran.r-project.org")'
+
+      # Run your R tests
       - name: Run R tests
-        run: Rscript -e 'devtools::test()'
+        run: |
+          Rscript -e 'devtools::test()'
 
 
       # - name: Install test dependencies
