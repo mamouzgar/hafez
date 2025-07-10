@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Detect CPU architecture
+        run: uname -m
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
