@@ -21,20 +21,16 @@ jobs:
       - name: Install Python dependencies
         run: pip install hafezR
 
-      # Install devtools package (needed to run devtools::test())
+      # **Install R first**
+      - name: Install R
+        run: brew install --cask r
+
+      # Then install R packages needed for testing
       - name: Install R packages
         run: |
-          Rscript -e 'install.packages("devtools", repos="https://cran.r-project.org")'
+          Rscript -e 'install.packages(c("devtools", "testthat"), repos="https://cran.r-project.org")'
 
       # Run your R tests
       - name: Run R tests
         run: |
           Rscript -e 'devtools::test()'
-
-
-      # - name: Install test dependencies
-      #   run: |
-      #     pip install pytest
-
-      # - name: Run tests
-      #   run: pytest
