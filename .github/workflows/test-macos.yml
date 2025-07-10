@@ -19,7 +19,7 @@ jobs:
           echo 'PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig"' >> $GITHUB_ENV
 
       - name: Install Python dependencies
-        run: pip install .
+        run: pip install hafezR
 
       - name: Run tests
         run: pytest
