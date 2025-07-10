@@ -21,10 +21,13 @@ jobs:
       - name: Install Python dependencies
         run: pip install hafezR
 
-      - name: Install test dependencies
-        run: |
-          pip install pytest
+      - name: Run R tests
+        run: Rscript -e 'devtools::test()'
 
-      - name: Run tests
-        run: pytest
 
+      # - name: Install test dependencies
+      #   run: |
+      #     pip install pytest
+
+      # - name: Run tests
+      #   run: pytest
