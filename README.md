@@ -2,6 +2,13 @@ README
 ================
 2025-02-28
 
+<figure>
+<img
+src="https://github.com/mamouzgar/hafez/actions/workflows/test-macos.yml/badge.svg"
+alt="macOS Build" />
+<figcaption aria-hidden="true">macOS Build</figcaption>
+</figure>
+
 “Hafez” is a time-series analysis framework the performs landmark
 trajectory inference and trajectory analysis strategies including cell
 density-based pseudotime normalization (DBPN), time-series distance
@@ -37,18 +44,27 @@ Hafez to avoid conflicts and secure your environment. We provide an
 necessary base software.
 
 Based on this recommended, please either download the
-“./installation_resources/environment.yml” file or clone the Hafez repo,
-and follow these instructions:
+“./installation_resources/environment.yml” file or clone the Hafez repo.
+Then follow these instructions:
 
-1.  In a new terminal, run:
+1.  In a new terminal, you will need to install these dependencies
+    before setting up and activating your conda environment:
 
 ``` bash
-conda env create --no-default-packages -f ~/Downloads/environment.yml
+
+brew install gcc pkg-config icu4c udunits abseil cmake cmake-docs
+export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig"
+```
+
+2.  Run this conda command.
+
+``` bash
+conda env create --no-default-packages -f ~/Downloads/environment.yml ## or directly from the github package
 conda activate hafez_env
 pip install hafezR
 ```
 
-2.  Open Rstudio and activate the conda environment using reticulate.
+3.  Open Rstudio and activate the conda environment using reticulate.
     You may need to first install the R packages reticulate and remotes
     if you don’t have them already.
 
@@ -63,7 +79,7 @@ if (any(!installed)) {
 }
 ```
 
-3.  In Rstudio, activate the conda environment and install hafez. It
+4.  In Rstudio, activate the conda environment and install hafez. It
     might take some time!
 
 ``` r
@@ -71,12 +87,6 @@ reticulate::use_condaenv('hafez_env')
 
 remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 ```
-
-<!-- If you are having difficulty you might need to run this in terminal before setting up and activating your conda environment: -->
-<!-- ```{bash,  eval=FALSE} -->
-<!-- brew install gcc pkg-config icu4c udunits abseil cmake cmake-docs -->
-<!-- export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig" -->
-<!-- ``` -->
 
 Example code to run the different functions are available with example
 data in ExampleCode/example_code.R. Install the package and follow the
