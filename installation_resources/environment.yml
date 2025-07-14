@@ -16,6 +16,7 @@ dependencies:
   - pkg-config
   - libxml2
   - zlib
+  - xz
   - pandoc
   - curl
   - r-irlba
@@ -25,6 +26,6 @@ dependencies:
   - r-ggpubr
   - r-remotes
   - pip
-  # Optional: you can include system-level deps if needed later
+  # Optional: system-level deps if needed later
   - libxml2
   #- liblapackcond
