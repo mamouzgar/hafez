@@ -614,7 +614,7 @@ find_closest_neighbor_distance = function(full_data, LM_col=NULL, LM_group, feat
 #' @description Detects inflection points along smoothed data using a melted format dataframe (eg, output of hafez_smoothing()).
 #' Columns must be x (pseudotime), y (fitted value), and your relevant conditions of interest that you want to stratify (eg, donor, treatment, etc).
 #' @export
-hafez_detect_inflections = function(dataset, groups=c()){
+hafez_detect_inflections = function(dataset, groups=c(NULL),slope_threshold=0.05){
      if (!any(c('x','y') %in% colnames(dataset)) ){
           stop('Missing pseudotime and fit values as columns x and y, respectively.')
      }
@@ -641,7 +641,11 @@ hafez_detect_inflections = function(dataset, groups=c()){
           ungroup() %>%
           mutate(slope_change_directionality = sign(lead(slope)) %>% ifelse(is.na(.),.[length(.)-1],.),
                  # pst_01 = pst %%1
-                 )
+                 ) %>%
+          mutate(
+               slope_diff = abs(lead(slope) - slope),
+               significant_change = slope_change & slope_diff > slope_threshold  # Define slope_threshold, e.g., 0.1
+          )
      return(hafez_infl_points)
 }
 

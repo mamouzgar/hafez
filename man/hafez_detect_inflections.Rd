@@ -4,7 +4,7 @@
 \alias{hafez_detect_inflections}
 \title{hafez_detect_inflections}
 \usage{
-hafez_detect_inflections(dataset, groups = c())
+hafez_detect_inflections(dataset, groups = c(NULL), slope_threshold = 0.05)
 }
 \description{
 Detects inflection points along smoothed data using a melted format dataframe (eg, output of hafez_smoothing()).
