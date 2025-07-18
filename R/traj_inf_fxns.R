@@ -305,7 +305,7 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_i
           CLOSEST_CELL_IDX = FULL_DATA_TRAIN %>% ungroup() %>%dplyr::select(any_of(features_for_start_cell_id)) %>% apply(.,1, mean) %>% which.min(.)
           CLOSEST_CELL_ID = FULL_DATA_TRAIN$cell.id[CLOSEST_CELL_IDX]
 
-          colnames(ELPIGRAPH_RES$node.df) = c(features, 'node','path1')
+          colnames(ELPIGRAPH_RES$node.df) = c(FEATURES, 'node','path1')
           node.pos= ELPIGRAPH_RES$node.df
 
 
