@@ -6,24 +6,48 @@
 \usage{
 hafez_TI(
   FULL_DATA,
-  features,
-  features_for_start_cell_id,
   LM_DATA = NULL,
+  features,
+  features_for_start_cell_id = NULL,
   return_pseudotime_only = TRUE,
   NumNodes = 5,
   lambda = 0.01,
   mu = 0.01,
   nReps = 30,
-  ProbPoint = 0.8,
+  ProbPoint = 1,
   MaxNumberOfIterations = 30,
-  branch_type = c("tree", "curve", "circle"),
-  TRAINING_VARIABLE = "WT",
+  branch_type = c("curve", "tree", "circle"),
   return_node_pos = FALSE,
   use_start_label = NULL,
-  start_label_column_category = c("celltype", "HSC"),
+  start_label_column_category = c(NULL),
   verbose = F
 )
 }
+\arguments{
+\item{FULL_DATA}{Full dataset (dataframe)}
+
+\item{LM_DATA}{Landmark dataset to use(dataframe)}
+
+\item{features}{vector of features to train landmark trajectory (genes, PCs, etc)}
+
+\item{features_for_start_cell_id}{Features to use to find start node. If Null, will return object and plot for manual node initialization.}
+
+\item{return_pseudotime_only}{Will only return pseudotime estimates}
+
+\item{NumNodes}{Number of nodes to compute. More nodes typically allows for more flexibility}
+
+\item{lambda}{Tuning parameter, typically good to be about 5x to 10x larger than mu.}
+
+\item{mu}{Tuning parameter.}
+
+\item{nReps}{Number of times to repeat construction}
+
+\item{ProbPoint}{Probability of including a point for computation. Value between 0 and 1.}
+
+\item{MaxNumberOfIterations}{Number of times to include node.}
+
+\item{branch_type}{Trajectory topology. Options are either 'curve','tree','circle'.}
+}
 \description{
-hafez_TI
+Perform linear, branching,or cyclical landmark trajectory inference and projects out-of-sample data.
 }

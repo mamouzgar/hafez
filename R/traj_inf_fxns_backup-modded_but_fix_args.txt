@@ -16,24 +16,24 @@
 #' @keywords internal
 #' @noRd
 hafez_TI_circle = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:10), LABELS = NULL,
-                           NumNodes = 25, nReps = 5, ProbPoint = 0.6,
-                           Lambda = 0.01, Mu = 0.1, Do_PCA = FALSE,
+                           NUM_NODES = 25, N_REPS = 5, PROB_POINT = 0.6,
+                           LAMBDA = 0.01, MU = 0.1, DO_PCA = FALSE,
                            RETURN_PROJECTION = FALSE,
-                           MaxNumberOfIterations = 20,
+                           MAX_ITER = 20,
                            DRAW_ACCURACY_COMPLEXITY = FALSE, DRAW_ENERGY = FALSE, DRAW_PCA_VIEW = FALSE,
-                           verbose = FALSE){
+                           VERBOSE = FALSE){
 
      TRAINING_DATA = LM_DATA %>% dplyr::select(any_of(FEATURES)) %>% as.matrix()
      OOS_DATA = FULL_DATA %>% dplyr::select(any_of(FEATURES)) %>% as.matrix()
 
      CircleEPG.Boot <- ElPiGraph.R::computeElasticPrincipalCircle(
           X = TRAINING_DATA,
-          NumNodes = NumNodes, nReps = nReps, ProbPoint = ProbPoint,
-          Lambda = Lambda, Mu = Mu, Do_PCA = Do_PCA,
+          NumNodes = NUM_NODES, nReps = N_REPS, ProbPoint = PROB_POINT,
+          Lambda = LAMBDA, Mu = MU, Do_PCA = DO_PCA,
           RETURN_PROJECTION = FALSE,
-          MaxNumberOfIterations = MaxNumberOfIterations,
+          MaxNumberOfIterations = MAX_ITER,
           drawAccuracyComplexity = DRAW_ACCURACY_COMPLEXITY, drawEnergy = DRAW_ENERGY, drawPCAView = DRAW_PCA_VIEW,
-          verbose = verbose
+          verbose = VERBOSE
      )
 
      PartStruct <- ElPiGraph.R::PartitionData(X = OOS_DATA, NodePositions = CircleEPG.Boot[[length(CircleEPG.Boot)]]$NodePositions)
@@ -72,12 +72,12 @@ hafez_TI_circle = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:10), LAB
 #' @noRd
 hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:10), LABELS = NULL,
                                   FEATURES_PLOT = NULL,
-                                  NumNodes = 10, nReps = 5, ProbPoint = 0.6,
-                                  Lambda = 0.01, Mu = 0.1, Do_PCA = FALSE,
-                                  MaxNumberOfIterations = 20, CC_PHASE_COLUMN = NULL,
+                                  NUM_NODES = 10, N_REPS = 5, PROB_POINT = 0.6,
+                                  LAMBDA = 0.01, MU = 0.1, DO_PCA = FALSE,
+                                  MAX_ITER = 20, CC_PHASE_COLUMN = NULL,
                                   BRANCH_TYPE = 'tree',
                                   DRAW_ACCURACY_COMPLEXITY = FALSE, DRAW_ENERGY = FALSE, DRAW_PCA_VIEW = FALSE,
-                                  verbose = FALSE){
+                                  VERBOSE = FALSE){
 
      if (is.null(FEATURES_PLOT)) {
           FEATURES_PLOT = FEATURES
@@ -88,25 +88,25 @@ hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:1
      if (BRANCH_TYPE == 'tree'){
           TreeEPG <- ElPiGraph.R::computeElasticPrincipalTree(
                X = as.matrix(TRAIN_DATA),
-               NumNodes = NumNodes, ProbPoint = ProbPoint, nReps = nReps,
-               MaxNumberOfIterations = MaxNumberOfIterations, verbose = verbose,
-               Lambda = Lambda, Mu = Mu, Do_PCA = Do_PCA,
+               NumNodes = NUM_NODES, ProbPoint = PROB_POINT, nReps = N_REPS,
+               MaxNumberOfIterations = MAX_ITER, verbose = VERBOSE,
+               Lambda = LAMBDA, Mu = MU, Do_PCA = DO_PCA,
                drawPCAView = DRAW_PCA_VIEW, drawAccuracyComplexity = DRAW_ACCURACY_COMPLEXITY,
                drawEnergy = DRAW_ENERGY
           )
      } else if (BRANCH_TYPE == 'curve'){
           TreeEPG <- ElPiGraph.R::computeElasticPrincipalCurve(
                X = as.matrix(TRAIN_DATA),
-               NumNodes = NumNodes, ProbPoint = ProbPoint, nReps = nReps,
-               MaxNumberOfIterations = MaxNumberOfIterations, verbose = verbose,
-               Lambda = Lambda, Mu = Mu, Do_PCA = Do_PCA,
+               NumNodes = NUM_NODES, ProbPoint = PROB_POINT, nReps = N_REPS,
+               MaxNumberOfIterations = MAX_ITER, verbose = VERBOSE,
+               Lambda = LAMBDA, Mu = MU, Do_PCA = DO_PCA,
                drawPCAView = DRAW_PCA_VIEW, drawAccuracyComplexity = DRAW_ACCURACY_COMPLEXITY,
                drawEnergy = DRAW_ENERGY
           )
      }
 
      node.df = TreeEPG[[1]]$NodePositions %>% data.frame() %>%
-          Mutate(node = paste0(1:nrow(.)), path1 = factor(node))
+          mutate(node = paste0(1:nrow(.)), path1 = factor(node))
 
      if (is.null(CC_PHASE_COLUMN)) {
           p.lineages = ggplot(LM_DATA, aes(x = !!sym(FEATURES_PLOT[1]), y = !!sym(FEATURES_PLOT[2]))) +
@@ -189,15 +189,15 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
 #' @param features_for_start_cell_id Features to use to find start node. If Null, will return object and plot for manual node initialization.
 #' @param return_pseudotime_only Will only return pseudotime estimates
 #' @param NumNodes Number of nodes to compute. More nodes typically allows for more flexibility
-#' @param Lambda  Tuning parameter, typically good to be about 5x to 10x larger than Mu.
-#' @param Mu  Tuning parameter.
+#' @param lambda  Tuning parameter, typically good to be about 5x to 10x larger than mu.
+#' @param mu  Tuning parameter.
 #' @param nReps Number of times to repeat construction
 #' @param ProbPoint Probability of including a point for computation. Value between 0 and 1.
 #' @param MaxNumberOfIterations Number of times to include node.
 #' @param branch_type Trajectory topology. Options are either 'curve','tree','circle'.
 #' @export
 
-hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_id=NULL, return_pseudotime_only=TRUE,NumNodes=5,Lambda = 0.01, Mu = 0.01, nReps=30, ProbPoint = 1,MaxNumberOfIterations =30, branch_type = c('curve','tree','circle'),return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c(NULL), verbose =F){
+hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_id=NULL, return_pseudotime_only=TRUE,NumNodes=5,lambda = 0.01, mu = 0.01, nReps=30, ProbPoint = 1,MaxNumberOfIterations =30, branch_type = c('curve','tree','circle'),return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c(NULL), verbose =F){
      START_TIME = Sys.time()
      FULL_DATA=FULL_DATA%>% ungroup()
      if (!is.null(LM_DATA)){
@@ -228,18 +228,16 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
 
           # invisible(capture.output(ELPPI_OUTPUT <- hafez_TI_circle(LM_DATA = FULL_DATA_TRAIN,
           #                                                          FULL_DATA = FULL_DATA,
-          #                                                          FEATURES = features,Mu = Mu, Lambda = Lambda, ProbPoint = ProbPoint,
+          #                                                          FEATURES = features,Mu = mu, Lambda = lambda, ProbPoint = ProbPoint,
           #                                                          ## changing probPoint
           #                                                          LABELS = NULL,  NumNodes = NumNodes, nReps =nReps, verbose = verbose )
           # ))
           invisible(capture.output(ELPPI_OUTPUT <- hafez_TI_circle(LM_DATA = FULL_DATA_TRAIN,
                                                                    FULL_DATA = FULL_DATA,
-                                                                   FEATURES = features,Mu = Mu, Lambda = Lambda, ProbPoint = ProbPoint,
+                                                                   FEATURES = features,Mu = mu, Lambda = lambda, ProbPoint = ProbPoint,
                                                                    ## changing probPoint
                                                                    LABELS = NULL,  NumNodes = NumNodes, nReps =nReps, verbose = verbose )
           ))
-
-
           message('graph complete... ')
           return(ELPPI_OUTPUT)
           proj.data = data.frame(ELPPI_OUTPUT$projection_struture$X_projected)
@@ -266,36 +264,36 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
           #                                                                  FULL_DATA = FULL_DATA,
           #                                                                  FEATURES = features,
           #                                                                  CCphase_column = 'gate',## used to label the example plot with node locations
-          #                                                                  NumNodes = NumNodes, Lambda = Lambda, Mu = Mu,Do_PCA = F,nReps = nReps,verbose = verbose,
+          #                                                                  NumNodes = NumNodes, Lambda = lambda, Mu = mu,Do_PCA = F,nReps = nReps,verbose = verbose,
           #                                                                  MaxNumberOfIterations=MaxNumberOfIterations,ProbPoint=ProbPoint,branch_type = branch_type,
           #                                                                  # verbose = T,
           #                                                                  drawAccuracyComplexity = FALSE, drawEnergy = FALSE)
           # ))
-
           invisible(capture.output(ELPIGRAPH_RES <- hafez_TI_LINEAR_BRANCH(
                LM_DATA = FULL_DATA_TRAIN,
                FULL_DATA = FULL_DATA,
                FEATURES = features,
                CC_PHASE_COLUMN = 'gate',  # Used for plot labeling
-               NumNodes = NumNodes,
-               Lambda = Lambda,
-               Mu = Mu,
-               Do_PCA = FALSE,
-               nReps = nReps,
-               verbose = verbose,
-               MaxNumberOfIterations = MaxNumberOfIterations,
-               ProbPoint = ProbPoint,
+               NUM_NODES = NumNodes,
+               LAMBDA = lambda,
+               MU = mu,
+               DO_PCA = FALSE,
+               N_REPS = nReps,
+               VERBOSE = verbose,
+               MAX_ITER = MaxNumberOfIterations,
+               PROB_POINT = ProbPoint,
                BRANCH_TYPE = branch_type,
                DRAW_ACCURACY_COMPLEXITY = FALSE,
                DRAW_ENERGY = FALSE
           )))
+
           message('graph complete... ')
 
           # ELPIGRAPH_RES <- hafez_TI_LINEAR_BRANCH(LM_DATA = FULL_DATA_TRAIN,
           #                                                                  FULL_DATA = FULL_DATA,
           #                                                                  FEATURES = features,
           #                                                                  CCphase_column = 'gate',## used to label the example plot with node locations
-          #                                                                  NumNodes = NumNodes, Lambda = Lambda, Mu = Mu,Do_PCA = F,nReps = nReps,verbose = verbose,
+          #                                                                  NumNodes = NumNodes, Lambda = lambda, Mu = mu,Do_PCA = F,nReps = nReps,verbose = verbose,
           #                                                                  MaxNumberOfIterations=MaxNumberOfIterations,ProbPoint=ProbPoint,branch_type = branch_type,
           #                                                                  # verbose = T,
           #                                                                  drawAccuracyComplexity = FALSE, drawEnergy = FALSE)
@@ -322,7 +320,7 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
 
           ## select start node at S-phase
           message('projecting to landmarks...')
-          pst = hafez_lineages_from_root(ELPIGRAPH_RES, OOS_DATA = FULL_DATA, ROOT = START_NODE_ID,FEATURES = FEATURES)
+          pst = hafez_lineages_from_root(ELPIGRAPH_RES, OOS_DATA = FULL_DATA, root = START_NODE_ID,features = features)
           # print(head(pst))
           if (PERFORM_OOS==TRUE){
                colnames(pst) = paste('LM_TI',colnames(pst),sep = '_')
@@ -352,7 +350,7 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
                dplyr::select(-any_of(   colnames(pst))) %>%
                bind_cols(pst)
      } else {
-          message('branch_type Must be tree, curve, or circle.')
+          message('branch_type must be tree, curve, or circle.')
           stopifnot(branch_type %in% c('tree','curve','circle'))
      }
 

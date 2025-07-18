@@ -49,7 +49,7 @@ pip install hafezR
 
 ```
 
-3. Open Rstudio and activate the conda environment using reticulate. You may need to first install the R packages reticulate and remotes if you don't have them already.
+3. Open Rstudio and install these R packages if you don't have them. 
 ```{r,  eval=FALSE}
 
 # List of required packages
@@ -63,7 +63,7 @@ if (any(!installed)) {
 ```
 
 
-4. In Rstudio, activate the conda environment and install hafez. It might take some time!
+4. Then activate the conda environment using reticulate and install Hafez. It might take some time to install all the dependencies!
 ```{r,  eval=FALSE}
 reticulate::use_condaenv('hafez_env')
 

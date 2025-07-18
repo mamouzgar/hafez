@@ -364,7 +364,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
      } else if (use_subset_of_cells == TRUE){
           message('computing pseudotime normalization on the provided subset of cells...')
           dataset_FULL = dataset
-          # dataset_train = dataset.subset_to_use
 
           if (!is.null(normalize_by_sample_column)){
 
@@ -384,7 +383,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           }
 
           density_df_01 = density.df %>%
-               # dplyr::filter(x>=0 & x<=1) %>%
                dplyr::mutate(y_normalized = y/sum(y),
                       pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), -0.01, .),
                       pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
@@ -402,14 +400,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           ## 'from' and 'to' are in quotes because it's reserved language for SQL. Here we use pseudotime_bin_01.min and pseudotime_bin_01.max
           # library('sqldf')
           message('integrating new pseudotime with full dataset...')
-          # cyclingCells_densityBins = cyclingCells_FULL # %>% dplyr::select(-time)
-          # print(dim(cyclingCells_densityBins))
-          # SQLbins = as_tibble(sqldf("select cyclingCells_densityBins.PSEUDOTIME_TO_DBPN, density_df_01.pseudotime_bins_density_based from cyclingCells_densityBins
-
-
-          # SQLbins = tibble::as_tibble(sqldf::sqldf("select dataset_FULL.PSEUDOTIME_TO_DBPN, density_df_01.* from dataset_FULL
-          #                                          join density_df_01 on dataset_FULL.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min and
-          #                                          dataset_FULL.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max"))
           dataset_FULL= tibble::as_tibble(sqldf::sqldf("SELECT
                                                      f.*,  -- Select all columns from dataset_FULL
                                                     d.pseudotime_bin_01_min,
@@ -424,43 +414,23 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
                                                   ON
                                                       f.PSEUDOTIME_TO_DBPN BETWEEN d.pseudotime_bin_01_min AND d.pseudotime_bin_01_max;
                                                   "))
-          # dataset_FULL=tibble::as_tibble(sqldf::sqldf("
-          #                                                SELECT dataset_FULL.*, density_df_01.*
-          #                                                FROM dataset_FULL
-          #                                                LEFT JOIN density_df_01
-          #                                                ON dataset_FULL.PSEUDOTIME_TO_DBPN > density_df_01.pseudotime_bin_01_min
-          #                                                AND dataset_FULL.PSEUDOTIME_TO_DBPN <= density_df_01.pseudotime_bin_01_max
-          #                                              "))
 
-
-
-          # SQLTEST <<-SQLbins
           dataset_FULL.test<<-dataset_FULL
-          # dataset_FULL = dataset_FULL %>%
-          #      dplyr::bind_cols(SQLbins %>% dplyr::select(-PSEUDOTIME_TO_DBPN))
-
-          # cyclingCells.PST_ADJUSTMENT = cyclingCells_FULL %>%
-          #      group_by(pseudotime_bins_density_based) %>%
-          #      summarize(count = n(),
-          #                min = min(PSEUDOTIME_TO_DBPN),
-          #                max = max(PSEUDOTIME_TO_DBPN)) %>%
-          #      mutate(percentage = count/sum(count),
-          #             percentage_sum  = cumsum(percentage))
           dataset_FULL= dataset_FULL %>%
-               # left_join(cyclingCells.PST_ADJUSTMENT) %>%
                group_by(pseudotime_bins_density_based) %>%
                mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
 
           dataset_FULL = dataset_FULL[, !colnames(dataset_FULL) %in% c('x','y','y_normalized','pseudotime_bin_01_min','pseudotime_bin_01_max','cumulative.sum','pseudotime_density_min','pseudotime_density_max','pseudotime_bins_density_based') ] ## remove excess columns that users don't need to see
           if (time_col_present == TRUE){
-               dataset_FULL = dataset_FULL %>% left_join(time_df, by = 'cell.id')
+               dataset_FULL = dataset_FULL %>% left_join(time_df, by = 'cell.id') %>% distinct(.,cell.id, .keep_all=T) ## remove duplicates that can arise from sql query based on overlapping intervals
           }
 
           if (RETURN_DENSITY_COORDINATES ==TRUE){
-               return(list(df.dbpn = dataset_FULL %>% ungroup(), density_df_01 = density_df_01))
+               return(list(df.dbpn = dataset_FULL %>% ungroup() %>% distinct(.,cell.id, .keep_all=T), ## remove duplicates that can arise from sql query based on overlapping intervals
+                           density_df_01 = density_df_01))
           }
           message(paste0('density-based pseudotime normalization complete! Column name is now ',new_dbp_name))
-          return(dataset_FULL %>%ungroup())
+          return(dataset_FULL %>%ungroup() %>% distinct(.,cell.id, .keep_all=T)) ## remove duplicates that can arise from sql query based on overlapping intervals
      }
 }
 
