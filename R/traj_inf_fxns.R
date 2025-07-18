@@ -197,7 +197,7 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
 #' @param branch_type Trajectory topology. Options are either 'curve','tree','circle'.
 #' @export
 
-hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_id=NULL, return_pseudotime_only=TRUE,NumNodes=5,Lambda = 0.01, Mu = 0.01, nReps=30, ProbPoint = 1,MaxNumberOfIterations =30, branch_type = c('curve','tree','circle'),return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c(NULL), verbose =F){
+hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_id=NULL, return_pseudotime_only=TRUE,NumNodes=5,Lambda = 0.01, Mu = 0.01, nReps=30, ProbPoint = 1,MaxNumberOfIterations =30, branch_type = c('curve','tree','circle'),return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c(NULL), verbose =F){
      START_TIME = Sys.time()
      FULL_DATA=FULL_DATA%>% ungroup()
      if (!is.null(LM_DATA)){
@@ -234,7 +234,7 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
           # ))
           invisible(capture.output(ELPPI_OUTPUT <- hafez_TI_circle(LM_DATA = FULL_DATA_TRAIN,
                                                                    FULL_DATA = FULL_DATA,
-                                                                   FEATURES = features,Mu = Mu, Lambda = Lambda, ProbPoint = ProbPoint,
+                                                                   FEATURES = FEATURES,Mu = Mu, Lambda = Lambda, ProbPoint = ProbPoint,
                                                                    ## changing probPoint
                                                                    LABELS = NULL,  NumNodes = NumNodes, nReps =nReps, verbose = verbose )
           ))
@@ -275,7 +275,7 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
           invisible(capture.output(ELPIGRAPH_RES <- hafez_TI_LINEAR_BRANCH(
                LM_DATA = FULL_DATA_TRAIN,
                FULL_DATA = FULL_DATA,
-               FEATURES = features,
+               FEATURES = FEATURES,
                CC_PHASE_COLUMN = 'gate',  # Used for plot labeling
                NumNodes = NumNodes,
                Lambda = Lambda,
@@ -310,14 +310,14 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, features, features_for_start_cell_i
 
 
           if (!is.null(use_start_label)){
-               my_start_label = FULL_DATA_TRAIN %>% dplyr::filter(!!sym(start_label_column_category[1]) == start_label_column_category[2]) %>% summarize_at(features, median)
+               my_start_label = FULL_DATA_TRAIN %>% dplyr::filter(!!sym(start_label_column_category[1]) == start_label_column_category[2]) %>% summarize_at(FEATURES, median)
                ELPIGRAPH_RES$node.df = ELPIGRAPH_RES$node.df %>% bind_rows(my_start_label)
           } else {
-               ELPIGRAPH_RES$node.df = ELPIGRAPH_RES$node.df %>% bind_rows(FULL_DATA_TRAIN %>% dplyr::filter(cell.id == CLOSEST_CELL_ID) %>% dplyr::select(any_of(features)))
+               ELPIGRAPH_RES$node.df = ELPIGRAPH_RES$node.df %>% bind_rows(FULL_DATA_TRAIN %>% dplyr::filter(cell.id == CLOSEST_CELL_ID) %>% dplyr::select(any_of(FEATURES)))
           }
 
 
-          START_NODE_ID = dist(ELPIGRAPH_RES$node.df %>% dplyr::select(any_of(features)),method = 'euclidean') %>% as.matrix() %>% .[1:nrow(.),ncol(.)] %>% .[.!=0] %>% .[which.min(.)] %>% names() %>% as.numeric()
+          START_NODE_ID = dist(ELPIGRAPH_RES$node.df %>% dplyr::select(any_of(FEATURES)),method = 'euclidean') %>% as.matrix() %>% .[1:nrow(.),ncol(.)] %>% .[.!=0] %>% .[which.min(.)] %>% names() %>% as.numeric()
 
 
           ## select start node at S-phase
