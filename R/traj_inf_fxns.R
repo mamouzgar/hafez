@@ -74,7 +74,7 @@ hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:1
                                   FEATURES_PLOT = NULL,
                                   NumNodes = 10, nReps = 5, ProbPoint = 0.6,
                                   Lambda = 0.01, Mu = 0.1, Do_PCA = FALSE,
-                                  MaxNumberOfIterations = 20, CC_PHASE_COLUMN = NULL,
+                                  MaxNumberOfIterations = 5, CC_PHASE_COLUMN = NULL,
                                   BRANCH_TYPE = 'tree',
                                   DRAW_ACCURACY_COMPLEXITY = FALSE, DRAW_ENERGY = FALSE, DRAW_PCA_VIEW = FALSE,
                                   verbose = FALSE){
