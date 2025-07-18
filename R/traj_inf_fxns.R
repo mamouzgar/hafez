@@ -106,7 +106,7 @@ hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:1
      }
 
      node.df = TreeEPG[[1]]$NodePositions %>% data.frame() %>%
-          Mutate(node = paste0(1:nrow(.)), path1 = factor(node))
+          mutate(node = paste0(1:nrow(.)), path1 = factor(node))
 
      if (is.null(CC_PHASE_COLUMN)) {
           p.lineages = ggplot(LM_DATA, aes(x = !!sym(FEATURES_PLOT[1]), y = !!sym(FEATURES_PLOT[2]))) +
