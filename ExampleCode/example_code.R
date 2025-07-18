@@ -41,13 +41,13 @@ features_pc=paste0('PC',1:6)
 
 ## without landmarks
 hafez_output = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,
-                        features = features_pc,NumNodes =5,Lambda = 0.01,Mu = 0.01,return_pseudotime_only = F,
+                        FEATURES = features_pc,NumNodes =5,Lambda = 0.01,Mu = 0.01,return_pseudotime_only = F,
                         features_for_start_cell_id =  features_cellcycle,branch_type  = 'circle',verbose = F, ## verbose does not currenly work
                         return_node_pos = F )
 
 ## with landmarks
 hafez_output = hafez_TI(FULL_DATA = hafez_input, LM_DATA = hafez_output %>% sample_n(500) ,
-                        features = features_pc,NumNodes =5,Lambda = 0.01,Mu = 0.01,return_pseudotime_only = F,
+                        FEATURES = features_pc,NumNodes =5,Lambda = 0.01,Mu = 0.01,return_pseudotime_only = F,
                         features_for_start_cell_id =  features_cellcycle,branch_type  = 'curve',verbose = F, ## verbose does not currenly work
                         return_node_pos = F )
 hafez_output

@@ -185,7 +185,7 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
 #' @description Perform linear, branching,or cyclical landmark trajectory inference and projects out-of-sample data.
 #' @param FULL_DATA Full dataset (dataframe)
 #' @param LM_DATA  Landmark dataset to use(dataframe)
-#' @param features vector of features to train landmark trajectory (genes, PCs, etc)
+#' @param FEATURES vector of features to train landmark trajectory (genes, PCs, etc)
 #' @param features_for_start_cell_id Features to use to find start node. If Null, will return object and plot for manual node initialization.
 #' @param return_pseudotime_only Will only return pseudotime estimates
 #' @param NumNodes Number of nodes to compute. More nodes typically allows for more flexibility
