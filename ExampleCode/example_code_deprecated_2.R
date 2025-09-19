@@ -39,8 +39,28 @@ hafez_input =  hafez::example_cytof_data
 hafez_input = hafez_landmark_processing(train = hafez_input %>% dplyr::filter(condition == 'WT'),full_data = hafez_input,features = features_cellcycle,method = 'PCA',return_object = F)
 features_pc=paste0('PC',1:6)
 
+
+
+# umap_res=uwot::umap(hafez_input %>% dplyr::select(all_of(features_pc)), verbose =T, spread=4)
+# umap_df=umap_res %>% data.frame()%>%
+#      bind_cols(hafez_input)
+# hafez_graph = hafez:::hafez_TI_LINEAR_BRANCH(FULL_DATA = umap_df %>%mutate(auto_annotation=gate),LM_DATA = umap_df%>%mutate(auto_annotation=gate),
+#                                              FEATURES = c('X1','X2'),NumNodes =5,Lambda = 0.0001,Mu = 0.0001,BRANCH_TYPE = 'curve',MaxNumberOfIterations = 1,
+#                                              # return_pseudotime_only = F,
+#                                              # features_for_start_cell_id =  features_cellcycle,
+#                                              # branch_type  = 'circle',verbose = T, ## verbose does not currenly work
+#                                              # return_node_pos = F
+# )
+#
+# hafez_graph$plot
+# hafez_res=hafez:::hafez_lineages_from_root(hafez_graph,umap_df,FEATURES = c('X1','X2'),ROOT = 1)
+# hafez_res
+# hafez_df=umap_df%>%bind_cols(hafez_res)
+#
+# ggplot(hafez_df, aes(x=X1,y=X2, color = path1))+geom_point()
+
 ## without landmarks
-hafez_output = hafez_TI(FULL_DATA = hafez_input,LM_DATA = hafez_input,
+hafez_output = hafez_TI(FULL_DATA = umap_df,LM_DATA = umap_df,
                         FEATURES = features_pc,NumNodes =5,Lambda = 0.01,Mu = 0.01,return_pseudotime_only = F,
                         features_for_start_cell_id =  c('PC1',''),branch_type  = 'circle',verbose = T, ## verbose does not currenly work
                         return_node_pos = F )
@@ -61,7 +81,7 @@ hafez_output = hafez_DBPN(dataset  = hafez_output,  dataset.subset_to_use = hafe
 
 ggplot(hafez_output, aes(x = PSEUDOTIME_NORMALIZED, y = LM_TI_path1))+
      theme_bw() +
-     theme(panel.border = element_rect(fill = 'transparent', linewidth = 0.5)) +
+     theme(panel.border = element_rect(fill = 'transparent', size = 0.5)) +
      geom_point(aes(color = gate)) +
      colScale_phases_manualAll
 
@@ -82,9 +102,9 @@ hafez_output = hafez_DBPN(dataset = hafez_output, dataset.subset_to_use = hafez_
                           column_to_normalize = 'pseudotime_orig', adjust.value = 0.5,
                           normalize_by_sample_column = 'condition')
 
-## We demonstrate that pseudotime normalization quantifies inhibitor action as a biological concept, but we recommend looking at cell density distributions of different inhibitors/groups along a normal trajectory for interpretation purposes.
+## We demonstrate that pseudotime normalization quantifies inhibitor action as a biological concept, but we recommend looking at cell density distributions of different inhibitors/groups along a normal trajectory for interepretation purposes.
 ## That said, you can reproduce this inhibitor action demonstrated in the manuscript using then following code.
-## here is an example code to efficiently do this using tidyverse
+## herre is an example code to efficiently do this using tidyverse
 hafez_output_pst_action = hafez_output %>%
      group_by(condition2=condition) %>%
      group_map(~{
