@@ -38,6 +38,21 @@ modeling, Hafez.
 
 ## Installation:
 
+There are a few options for using Hafez. (1) Github-based installation
+in R.
+
+2)  Docker image.
+
+3)  hafezjoon - A miniature version of Hafez that has all the
+    post-trajectory inference functionality but omits the trajectory
+    inference algorithm, which significantly simplifies installation.
+
+Example code to run the different functions are available with example
+data in ExampleCode/example_code.R. Install the package and follow the
+instructions in ExampleCode/example_code.R.
+
+## (1) Standard Github installation using devtools in R.
+
 It is highly recommended to use conda environments and reticulate for
 Hafez to avoid conflicts and secure your environment. We provide an
 `environment.yml` file that creates a conda environment with the
@@ -64,9 +79,7 @@ conda activate hafez_env
 pip install hafezR
 ```
 
-3.  Open Rstudio and activate the conda environment using reticulate.
-    You may need to first install the R packages reticulate and remotes
-    if you don’t have them already.
+3.  Open Rstudio and install these R packages if you don’t have them.
 
 ``` r
 # List of required packages
@@ -79,8 +92,8 @@ if (any(!installed)) {
 }
 ```
 
-4.  In Rstudio, activate the conda environment and install hafez. It
-    might take some time!
+4.  Then activate the conda environment using reticulate and install
+    Hafez. It might take some time to install all the dependencies!
 
 ``` r
 reticulate::use_condaenv('hafez_env')
@@ -88,108 +101,101 @@ reticulate::use_condaenv('hafez_env')
 remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 ```
 
-Example code to run the different functions are available with example
-data in ExampleCode/example_code.R. Install the package and follow the
-instructions in ExampleCode/example_code.R.
+## (2) Docker image.
 
-<!-- ## System:  -->
-<!-- ```{r,  eval=FALSE} -->
-<!-- Package    Version -->
-<!-- tidyselect 1.2.1 -->
-<!-- dplyr  1.1.4 -->
-<!-- blob   1.2.4 -->
-<!-- graphics   4.4.2 -->
-<!-- fastmap    1.2.0 -->
-<!-- TH.data    1.1.2 -->
-<!-- ElPiGraph.R    1.0.0 -->
-<!-- promises   1.3.0 -->
-<!-- shinyjs    2.1.0 -->
-<!-- digest 0.6.37 -->
-<!-- estimability   1.5.1 -->
-<!-- mime   0.12 -->
-<!-- lifecycle  1.0.4 -->
-<!-- cluster    2.1.6 -->
-<!-- survival   3.7.0 -->
-<!-- base   4.4.2 -->
-<!-- RSQLite    2.3.7 -->
-<!-- magrittr   2.0.3 -->
-<!-- compiler   4.4.2 -->
-<!-- rlang  1.1.4 -->
-<!-- tools  4.4.2 -->
-<!-- igraph 2.1.1 -->
-<!-- utf8   1.2.4 -->
-<!-- bit    4.5.0 -->
-<!-- plyr   1.8.9 -->
-<!-- methods    4.4.2 -->
-<!-- multcomp   1.4.26 -->
-<!-- purrr  1.0.2 -->
-<!-- desc   1.4.3 -->
-<!-- grid   4.4.2 -->
-<!-- stats4 4.4.2 -->
-<!-- fansi  1.0.6 -->
-<!-- grDevices  4.4.2 -->
-<!-- xtable 1.8.4 -->
-<!-- colorspace 2.1.1 -->
-<!-- ggplot2    3.5.1 -->
-<!-- emmeans    1.10.5 -->
-<!-- scales 1.3.0 -->
-<!-- iterators  1.0.14 -->
-<!-- MASS   7.3.61 -->
-<!-- cli    3.6.3 -->
-<!-- mvtnorm    1.3.1 -->
-<!-- crayon 1.5.3 -->
-<!-- chron  2.3.61 -->
-<!-- utils  4.4.2 -->
-<!-- generics   0.1.3 -->
-<!-- remotes    2.5.0 -->
-<!-- RcppParallel   5.1.9 -->
-<!-- rstudioapi 0.17.1 -->
-<!-- RSpectra   0.16.2 -->
-<!-- reshape2   1.4.4 -->
-<!-- DBI    1.2.3 -->
-<!-- cachem 1.1.0 -->
-<!-- proxy  0.4.27 -->
-<!-- stringr    1.5.1 -->
-<!-- hafez  0.1.0 -->
-<!-- modeltools 0.2.23 -->
-<!-- datasets   4.4.2 -->
-<!-- splines    4.4.2 -->
-<!-- assertthat 0.2.1 -->
-<!-- parallel   4.4.2 -->
-<!-- proxyC 0.4.1 -->
-<!-- vctrs  0.6.5 -->
-<!-- Matrix 1.7.1 -->
-<!-- sandwich   3.1.1 -->
-<!-- bit64  4.5.2 -->
-<!-- ggrepel    0.9.6 -->
-<!-- clue   0.3.66 -->
-<!-- foreach    1.5.2 -->
-<!-- tidyr  1.3.1 -->
-<!-- dynutils   1.0.11 -->
-<!-- proto  1.0.0 -->
-<!-- glue   1.8.0 -->
-<!-- dtw    1.23.1 -->
-<!-- codetools  0.2.20 -->
-<!-- flexclust  1.4.2 -->
-<!-- stringi    1.8.4 -->
-<!-- gtable 0.3.6 -->
-<!-- later  1.3.2 -->
-<!-- munsell    0.5.1 -->
-<!-- tibble 3.2.1 -->
-<!-- pillar 1.9.0 -->
-<!-- htmltools  0.5.8.1 -->
-<!-- R6 2.5.1 -->
-<!-- stats  4.4.2 -->
-<!-- shiny  1.9.1 -->
-<!-- lattice    0.22.6 -->
-<!-- gsubfn 0.7 -->
-<!-- dtwclust   6.0.0 -->
-<!-- memoise    2.0.1 -->
-<!-- httpuv 1.6.15 -->
-<!-- class  7.3.22 -->
-<!-- Rcpp   1.0.13 -->
-<!-- coda   0.19.4.1 -->
-<!-- sqldf  0.4.11 -->
-<!-- zoo    1.8.12 -->
-<!-- pkgconfig  2.0.3 -->
-<!-- ``` -->
+A dockerfile is present in this repository. Follow the instructions
+below: 1. Install Docker: <https://docs.docker.com/desktop/>
+
+2.  Open terminal and clone the github repository.
+
+``` r
+got clone https://github.com/mamouzgar/hafez.git
+```
+
+3.  Navigate to the directory and build the docker image. This may take
+    ~20-30 minutes
+
+``` r
+cd hafez
+docker build -t hafez_docker .
+```
+
+4.  Run the docker image. You can change the port and password as you
+    wish. You can also mount a local directory to the docker container
+    to access local data and save your results. In this example, I mount
+    a local directory called “~/Rpackages/hafez/data” in the hafez repo
+    to the “/home/rstudio/data” directory in the docker container. Now,
+    files saved in “/home/rstudio/data/” will live on the host machine
+    path you provided (i.e., “~/Rpackages/hafez/data”) so your files
+    will be saved on the host machine even if the container is deleted.
+
+``` bash
+docker run -d \
+    -p 8787:8787 \
+    -e PASSWORD=hafez \
+    -v ~/Rpackages/hafez/data:/home/rstudio/data \ 
+    hafez_docker
+```
+
+4.  Open <http://localhost:8787> in your browser.
+
+5.  Login with:
+
+``` bash
+Username: hafez
+Password: hafez # or other password you specified. You might see a warning message when logging in.
+```
+
+6.  You can now run Hafez from within the docker image. See the example
+    code instructions at the top of the repo.
+
+7.  You can stop the docker image by running:
+
+``` bash
+docker stop <container_id>
+docker rm <container_id>
+```
+
+I recommend reading about docker and how to use it!
+
+## (3) hafezJoon
+
+Hafez includes both trajectory inference and post-hoc trajectory
+analysis functionality. However, you may only be interested in the
+analysis toolkit if you’ve used another preferred trajectory inference
+strategy. Considering the trajectory inference functionality is hefty,
+we’ve provided a simpler version of the package with a simpler
+installation procedure. This miniature version of Hafez that has all the
+post-trajectory inference functionality but omits the trajectory
+inference algorithm.
+
+To intall hafezjoon, you can go to the github page or just directly
+install in R.
+
+``` r
+remotes::install_github("mamouzgar/hafezjoon", build_vignettes = FALSE,force = TRUE)
+```
+
+    ## Using GitHub PAT from the git credential store.
+
+    ## Downloading GitHub repo mamouzgar/hafezjoon@HEAD
+
+    ## ── R CMD build ─────────────────────────────────────────────────────────────────
+    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpUIDhmm/remotes72063515739/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpUIDhmm/remotes72063515739/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ (343ms)
+    ##   ─  preparing ‘hafezjoon’:
+    ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
+    ##   ─  checking for LF line-endings in source and make files and shell scripts (362ms)
+    ##   ─  checking for empty or unneeded directories
+    ##        NB: this package now depends on R (>= 3.5.0)
+    ##        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+    ##      serialize/load version 3 cannot be read in older versions of R.
+    ##      File(s) containing such objects:
+    ##        ‘hafezjoon/data/ct.rda’ ‘hafezjoon/data/example_glm_input.rda’
+    ##   ─  building ‘hafezjoon_0.1.0.tar.gz’
+    ##      
+    ## 
+
+    ## Installing package into '/Users/amouzgar/Library/Caches/org.R-project.R/R/renv/library/hafez-60a97ca7/macos/R-4.4/x86_64-apple-darwin20'
+    ## (as 'lib' is unspecified)
+
+You may need to manually install some dependencies.
