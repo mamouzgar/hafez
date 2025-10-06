@@ -127,7 +127,7 @@ docker rm <container_id>
 I recommend reading about docker and how to use it!
 
 
-## (3) hafezJoon
+## (3) hafezjoon
 Hafez includes both trajectory inference and post-hoc trajectory analysis functionality. However, you may only be interested in the analysis toolkit if you've used another preferred trajectory inference strategy. Considering the trajectory inference functionality is hefty, we've provided a simpler version of the package with a simpler installation procedure. This miniature version of Hafez that has all the post-trajectory inference functionality but omits the trajectory inference algorithm.
 
 To install hafezjoon, you can go to the github page or just directly install in R.
