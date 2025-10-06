@@ -1,6 +1,10 @@
 # Start from rocker base with RStudio Server + tidyverse
 FROM rocker/rstudio:4.4.1
 
+RUN usermod -l hafez rstudio && \
+    usermod -d /home/hafez -m hafez
+
+
 # Install system dependencies for R packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
