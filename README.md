@@ -38,8 +38,9 @@ modeling, Hafez.
 
 ## Installation:
 
-There are a few options for using Hafez. (1) Github-based installation
-in R.
+There are a few options for using Hafez.
+
+1)  Github-based installation in R.
 
 2)  Docker image.
 
@@ -158,7 +159,7 @@ docker rm <container_id>
 
 I recommend reading about docker and how to use it!
 
-## (3) hafezJoon
+## (3) hafezjoon
 
 Hafez includes both trajectory inference and post-hoc trajectory
 analysis functionality. However, you may only be interested in the
@@ -169,7 +170,7 @@ installation procedure. This miniature version of Hafez that has all the
 post-trajectory inference functionality but omits the trajectory
 inference algorithm.
 
-To intall hafezjoon, you can go to the github page or just directly
+To install hafezjoon, you can go to the github page or just directly
 install in R.
 
 ``` r
@@ -181,10 +182,10 @@ remotes::install_github("mamouzgar/hafezjoon", build_vignettes = FALSE,force = T
     ## Downloading GitHub repo mamouzgar/hafezjoon@HEAD
 
     ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpUIDhmm/remotes72063515739/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpUIDhmm/remotes72063515739/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ (343ms)
+    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpvNz7je/remotes7366548c51da/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpvNz7je/remotes7366548c51da/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’
     ##   ─  preparing ‘hafezjoon’:
     ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-    ##   ─  checking for LF line-endings in source and make files and shell scripts (362ms)
+    ##   ─  checking for LF line-endings in source and make files and shell scripts
     ##   ─  checking for empty or unneeded directories
     ##        NB: this package now depends on R (>= 3.5.0)
     ##        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
