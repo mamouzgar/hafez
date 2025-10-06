@@ -1,9 +1,10 @@
 # Start from rocker base with RStudio Server + tidyverse
 FROM rocker/rstudio:4.4.1
 
+# rename user
 RUN usermod -l hafez rstudio && \
     usermod -d /home/hafez -m hafez
-
+RUN echo "hafez:hafez" | chpasswd
 
 # Install system dependencies for R packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
