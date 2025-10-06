@@ -100,7 +100,7 @@ docker build -t hafez_docker .
 
 4. Run the docker image. You can change the port and password as you wish. You can also mount a local directory to the docker container to access local data and save your results. In this example, I mount a local directory called "~/Rpackages/hafez/data" in the hafez repo to the "/home/rstudio/data" directory in the docker container. Now, files saved in "/home/rstudio/data/" will live on the host machine path you provided  (i.e., "~/Rpackages/hafez/data") so your files will be saved on the host machine even if the container is deleted.
 
-```{bash}
+```{bash, eval=FALSE}
 docker run -d \
 	-p 8787:8787 \
 	-e PASSWORD=hafez \
@@ -111,7 +111,7 @@ docker run -d \
 4. Open http://localhost:8787 in your browser.
 
 5. Login with:
-```{bash}
+```{bash, eval=FALSE}
 Username: hafez
 Password: hafez # or other password you specified. You might see a warning message when logging in.
 ```
@@ -119,7 +119,7 @@ Password: hafez # or other password you specified. You might see a warning messa
 6. You can now run Hafez from within the docker image. See the example code instructions at the top of the repo.
 
 7. You can stop the docker image by running:
-```{bash}
+```{bash, eval=FALSE}
 docker stop <container_id>
 docker rm <container_id>
 ```
