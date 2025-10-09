@@ -7,12 +7,12 @@
 hafez_TI(
   FULL_DATA,
   LM_DATA = NULL,
-  features,
+  FEATURES,
   features_for_start_cell_id = NULL,
   return_pseudotime_only = TRUE,
   NumNodes = 5,
-  lambda = 0.01,
-  mu = 0.01,
+  Lambda = 0.01,
+  Mu = 0.01,
   nReps = 30,
   ProbPoint = 1,
   MaxNumberOfIterations = 30,
@@ -28,7 +28,7 @@ hafez_TI(
 
 \item{LM_DATA}{Landmark dataset to use(dataframe)}
 
-\item{features}{vector of features to train landmark trajectory (genes, PCs, etc)}
+\item{FEATURES}{vector of features to train landmark trajectory (genes, PCs, etc)}
 
 \item{features_for_start_cell_id}{Features to use to find start node. If Null, will return object and plot for manual node initialization.}
 
@@ -36,9 +36,9 @@ hafez_TI(
 
 \item{NumNodes}{Number of nodes to compute. More nodes typically allows for more flexibility}
 
-\item{lambda}{Tuning parameter, typically good to be about 5x to 10x larger than mu.}
+\item{Lambda}{Tuning parameter, typically good to be about 5x to 10x larger than Mu.}
 
-\item{mu}{Tuning parameter.}
+\item{Mu}{Tuning parameter.}
 
 \item{nReps}{Number of times to repeat construction}
 
