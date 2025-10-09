@@ -170,33 +170,12 @@ installation procedure. This miniature version of Hafez that has all the
 post-trajectory inference functionality but omits the trajectory
 inference algorithm.
 
-To install hafezjoon, you can go to the github page or just directly
-install in R.
+To install hafezjoon, you can go to the github page
+<https://github.com/mamouzgar/hafezjoon> or directly install in R using
+the following command:
 
 ``` r
 remotes::install_github("mamouzgar/hafezjoon", build_vignettes = FALSE,force = TRUE)
 ```
-
-    ## Using GitHub PAT from the git credential store.
-
-    ## Downloading GitHub repo mamouzgar/hafezjoon@HEAD
-
-    ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpvNz7je/remotes7366548c51da/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’ ...  ✔  checking for file ‘/private/var/folders/5c/7hlkc1md6vn6jdt2w25xyjz00000gn/T/RtmpvNz7je/remotes7366548c51da/mamouzgar-hafezjoon-60455e0e1b5c5aa2851f2240d5ddaff57d695506/DESCRIPTION’
-    ##   ─  preparing ‘hafezjoon’:
-    ##      checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-    ##   ─  checking for LF line-endings in source and make files and shell scripts
-    ##   ─  checking for empty or unneeded directories
-    ##        NB: this package now depends on R (>= 3.5.0)
-    ##        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
-    ##      serialize/load version 3 cannot be read in older versions of R.
-    ##      File(s) containing such objects:
-    ##        ‘hafezjoon/data/ct.rda’ ‘hafezjoon/data/example_glm_input.rda’
-    ##   ─  building ‘hafezjoon_0.1.0.tar.gz’
-    ##      
-    ## 
-
-    ## Installing package into '/Users/amouzgar/Library/Caches/org.R-project.R/R/renv/library/hafez-60a97ca7/macos/R-4.4/x86_64-apple-darwin20'
-    ## (as 'lib' is unspecified)
 
 You may need to manually install some dependencies.
