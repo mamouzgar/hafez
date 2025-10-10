@@ -84,7 +84,8 @@ remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 
 
 ## (2) Docker image. 
-A dockerfile is present in this repository. Follow the instructions below:
+A dockerfile is present in this repository. Follow the instructions below to download Docker desktop to your machine and run the Docker image:
+
 1. Install Docker: https://docs.docker.com/desktop/
 
 2. Open terminal and clone the github repository.
@@ -99,7 +100,7 @@ docker build -t hafez_docker .
 
 ```
 
-4. Run the docker image. You can change the port and password as you wish. You can also mount a local directory to the docker container to access local data and save your results. In this example, I mount a local directory called "~/Rpackages/hafez/data" in the hafez repo to the "/home/rstudio/data" directory in the docker container. Now, files saved in "/home/rstudio/data/" will live on the host machine path you provided  (i.e., "~/Rpackages/hafez/data") so your files will be saved on the host machine even if the container is deleted.
+4. Run the docker image. You can change the port and password as you wish. I highly recommend you mount a local directory to the docker container to have access to local data and save your results. In this example, I use the -v command to mount a local directory called `~/Rpackages/hafez/data` in the hafez repo to the `/home/rstudio/data` directory in the docker container. Here, files saved in `/home/rstudio/data/` of the docker environment will live on the host machine path you provided  (i.e., `~/Rpackages/hafez/data`) so your files will be saved on the host machine even if the container is deleted.
 
 ```{bash, eval=FALSE}
 docker run -d \
