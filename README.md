@@ -102,6 +102,31 @@ reticulate::use_condaenv('hafez_env')
 remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 ```
 
+Note: If you’re experiencing gfortran errors, it may be easier to break
+installation up manually. Open terminal and install gcc then create the
+Makevars file.
+
+``` bash
+brew install gcc
+mkdir ~/.R ## if it doesn't already exist
+touch ~/.R/Makevars ## create a Makevars file if it doesn't already exist, otherwise it just updates the timestamp
+nano ~/.R/Makevars ## edit the Makevars file
+```
+
+Paste these lines into the Makevars file:
+
+``` bash
+FC = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran
+F77 = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran
+FLIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
+```
+
+Then open RStudio and install Hafez:
+
+``` r
+remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,dependencies=TRUE, force = TRUE)
+```
+
 ## (2) Docker image.
 
 A dockerfile is present in this repository. Follow the instructions
