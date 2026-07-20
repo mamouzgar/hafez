@@ -3,3 +3,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^ExampleCode$
+^other$
+^installation_resources$
+^Dockerfile$
+^\.github$

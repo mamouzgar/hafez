@@ -253,12 +253,12 @@ pseudotime_mapped_mahalanobis_analysis = function(dataset, method = c('landmark_
      if (method == 'landmark'){
           PM_mahaalanobis_results = dataset %>%
                group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = FALSE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
+               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = FALSE,  tol=1e-20, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
                bind_rows()
      } else if (method == 'all'){
           PM_mahaalanobis_results = dataset %>%
                group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = TRUE,  tol=tol, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
+               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = TRUE,  tol=1e-20, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
                bind_rows()
      }
      return(PM_mahaalanobis_results)
@@ -314,7 +314,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           message('normalizing on all cells')
 
           density.res = density(dataset$PSEUDOTIME_TO_DBPN, from = myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
-          dataset.frame(x = density.res$x, y  =density.res$y)
           density.df = data.frame(x = density.res$x, y  =density.res$y)
           density_df_01 = density.df %>%
                # dplyr::filter(x>=0 & x<=1) %>%
@@ -349,7 +348,7 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
                mutate(percentage = count/sum(count),
                       percentage_sum  = cumsum(percentage))
           dataset= dataset %>%
-               left_join(cyclingCells.PST_ADJUSTMENT) %>%
+               left_join(dataset.PST_ADJUSTMENT) %>%
                group_by(pseudotime_bins_density_based) %>%
                mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
 
@@ -391,10 +390,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
                       pseudotime_density_min = dplyr::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
                       pseudotime_density_max = cumulative.sum,
                       pseudotime_bins_density_based = 1:nrow(.))
-          # print(head(density_df_01))
-          dn_orig <<-density.df
-          dn_TEST <<-density_df_01
-          dataset_FULL_TEST<<-dataset_FULL
           ## SQL based join on a range from S/O
           ## https://stackoverflow.com/questions/46795636/r-dplyr-join-by-range-or-virtual-column
           ## 'from' and 'to' are in quotes because it's reserved language for SQL. Here we use pseudotime_bin_01.min and pseudotime_bin_01.max
@@ -415,7 +410,6 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
                                                       f.PSEUDOTIME_TO_DBPN BETWEEN d.pseudotime_bin_01_min AND d.pseudotime_bin_01_max;
                                                   "))
 
-          dataset_FULL.test<<-dataset_FULL
           dataset_FULL= dataset_FULL %>%
                group_by(pseudotime_bins_density_based) %>%
                mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%

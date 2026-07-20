@@ -63,7 +63,7 @@ hafez_tsvz=function(ts_input, groups=NULL, approach = c('density','expr','other'
                ungroup()%>%
                dplyr::select(x,y,group)%>%
                spread(key = x, value = y ) %>%
-               column_to_rownames('group')
+               tibble::column_to_rownames('group')
      }
      message('performing time-series analysis...')
      dtw_clusters_dists = hafez_tsvz_clust(ts_input = ts_input,k = k,type = type,distance = distance,seed = seed,normalize=normalize,...)
@@ -113,7 +113,7 @@ hafez_smoothing = function(data,groups = c(NULL), features, pseudotime_column = 
      smoothed_patterns = data %>%
           ungroup()%>%
           mutate(pst = .[[pseudotime_column]]) %>%
-          pivot_longer(cols = all_of(features), names_to = 'feature',values_to = 'value') %>%
+          tidyr::pivot_longer(cols = all_of(features), names_to = 'feature',values_to = 'value') %>%
           group_by(across(all_of(c(groups, 'feature')))) %>%
           group_modify( .f= function(dd,...){
                tryCatch({

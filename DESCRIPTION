@@ -1,24 +1,20 @@
 Package: hafez
 Title: Hafez
-Version: 0.0.0.9000
-Authors@R: 
-    person(given = "Meelad", 
-           family = "Amouzgar", 
-           email = "amouzgar@stanford.edu", 
+Version: 0.1.0
+Authors@R:
+    person(given = "Meelad",
+           family = "Amouzgar",
+           email = "amouzgar@stanford.edu",
            role = c("aut", "cre"))
 Description: Landmark trajectory inference and time-series analysis.
 License: GPL (>= 3)
-Authors: Meelad Amouzgar <amouzgar@stanford.edu>
 Encoding: UTF-8
-Language: es
+Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports: 
+Imports:
     dplyr,
-    reticulate,
-    remotes,
     dynutils,
-    irlba,
     ggforce,
     segmented,
     ggpubr,
@@ -34,17 +30,20 @@ Imports:
     stats,
     tibble,
     tidyr,
-    tidyverse,
     magrittr,
     utils,
     dtwclust,
-    patchwork,
     distutils,
     ElPiGraph.R
 Remotes:
     mamouzgar/distutils,
-    mamouzgar/ElPiGraph.R,
-    asardaes/dtwclust
-Depends: 
-    R (>= 2.10)
+    mamouzgar/ElPiGraph.R
+Suggests:
+    remotes,
+    reticulate,
+    irlba,
+    patchwork,
+    uwot
+Depends:
+    R (>= 4.0.0)
 LazyData: true

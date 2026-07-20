@@ -36,7 +36,26 @@ to his legacy by naming our integrated experimental and computational
 method for interpretable landmark trajectory inference and systems
 modeling, Hafez.
 
-## Installation:
+## Quick Install
+
+**macOS users: install gfortran first** (required to compile two dependencies — takes ~2 min):
+
+1. Download and run the installer from https://mac.r-project.org/tools/ (choose the arm64 or x86 `.pkg` depending on your Mac).
+
+2. Then in R:
+
+```r
+# install.packages("remotes")
+remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE)
+```
+
+That's it — all other dependencies (including `ElPiGraph.R`, `distutils`, and `dtwclust`) are installed automatically.
+
+> **Linux / Windows:** gfortran is typically available by default. Just run the `remotes::install_github(...)` command above.
+>
+> **Still seeing compiler errors?** See the full [macOS troubleshooting](#1-standard-github-installation-using-devtools-in-r) section below.
+
+## Installation
 
 There are a few options for using Hafez.
 
@@ -63,12 +82,14 @@ Based on this recommended, please either download the
 “./installation_resources/environment.yml” file or clone the Hafez repo.
 Then follow these instructions:
 
-1.  In a new terminal, you will need to install these dependencies
-    before setting up and activating your conda environment:
+1.  Install gfortran for macOS. R on macOS requires gfortran from the
+    official CRAN toolchain (not `brew install gcc` — that puts gfortran
+    in the wrong location). Download the `.pkg` installer for your architecture
+    from <https://mac.r-project.org/tools/> and run it.
+    Optionally, install other system libraries via Homebrew:
 
 ``` bash
-
-brew install gcc pkg-config icu4c udunits abseil cmake cmake-docs
+brew install pkg-config icu4c udunits
 export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig"
 ```
 
@@ -102,29 +123,14 @@ reticulate::use_condaenv('hafez_env')
 remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,force = TRUE)
 ```
 
-Note: If you’re experiencing gfortran errors, it may be easier to break
-installation up manually. Open terminal and install gcc then create the
-Makevars file.
-
-``` bash
-brew install gcc
-mkdir ~/.R ## if it doesn't already exist
-touch ~/.R/Makevars ## create a Makevars file if it doesn't already exist, otherwise it just updates the timestamp
-nano ~/.R/Makevars ## edit the Makevars file
-```
-
-Paste these lines into the Makevars file:
-
-``` bash
-FC = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran
-F77 = /opt/homebrew/Cellar/gcc/11.3.0_2/bin/gfortran
-FLIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
-```
-
-Then open RStudio and install Hafez:
+**Troubleshooting gfortran errors:** R on macOS links against gfortran
+even for C++ packages. The fix is to install the official CRAN gfortran
+toolchain (not `brew install gcc`) from <https://mac.r-project.org/tools/>.
+This installs to `/opt/gfortran/`, which is exactly where R looks for it.
+After installing, retry the `remotes::install_github(...)` command above.
 
 ``` r
-remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE,dependencies=TRUE, force = TRUE)
+remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE, force = TRUE)
 ```
 
 ## (2) Docker image.
@@ -138,7 +144,7 @@ image:
 2.  Open terminal and clone the github repository.
 
 ``` r
-got clone https://github.com/mamouzgar/hafez.git
+git clone https://github.com/mamouzgar/hafez.git
 ```
 
 3.  Navigate to the directory and build the docker image. This may take

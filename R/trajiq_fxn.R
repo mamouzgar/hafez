@@ -235,7 +235,7 @@ TukeyWukey = function(myGLM, combos_df, contrast_variables){
      comparison_contrasts = sapply(contrast_variables, function(dd){
           multitest_pairstest[[paste0(dd,'_comparison')]] = paste(multitest_pairstest[[paste0(dd,'1')]], multitest_pairstest[[paste0(dd,'2')]], sep = '-vs-')
      })  %>% data.frame()%>%
-          dplyr::rename_all(~paste0(.x,'_comparison'))
+          dplyr::rename_with(~paste0(.x,'_comparison'))
 
      multitest_pairstest=multitest_pairstest  %>%
           bind_cols(comparison_contrasts) %>%
@@ -278,7 +278,7 @@ emmy = function(myGLM, contrast_variables){
      comparison_contrasts = sapply(contrast_variables, function(dd){
           multitest_pairstest[[paste0(dd,'_comparison')]] = paste(multitest_pairstest[[paste0(dd,'1')]], multitest_pairstest[[paste0(dd,'2')]], sep = '-vs-')
      })  %>% data.frame()%>%
-          dplyr::rename_all(~paste0(.x,'_comparison'))
+          dplyr::rename_with(~paste0(.x,'_comparison'))
 
      multitest_pairstest=multitest_pairstest  %>%
           bind_cols(comparison_contrasts) %>%
