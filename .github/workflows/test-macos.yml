@@ -28,7 +28,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             gfortran libcurl4-openssl-dev libssl-dev libxml2-dev \
-            libglpk40 libglpk-dev
+            libglpk40 libglpk-dev libfontconfig1-dev libfreetype-dev \
+            libpng-dev libuv1-dev
 
       # -- macOS system deps --------------------------------------------------
       - name: Install system dependencies (macOS)

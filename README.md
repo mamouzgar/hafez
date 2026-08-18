@@ -49,7 +49,7 @@ modeling, Hafez.
 remotes::install_github("mamouzgar/hafez", build_vignettes = FALSE)
 ```
 
-That's it — all other dependencies (including `ElPiGraph.R`, `distutils`, and `dtwclust`) are installed automatically.
+That's it — all other dependencies (including `ElPiGraph.R` and `dtwclust`) are installed automatically.
 
 > **Linux / Windows:** gfortran is typically available by default. Just run the `remotes::install_github(...)` command above.
 >
