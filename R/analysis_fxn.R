@@ -21,6 +21,13 @@
 #' @importFrom utils head
 #' @importFrom dplyr select
 #' @importFrom dplyr mutate
+#' @importFrom dplyr any_of
+#' @importFrom dplyr arrange
+#' @importFrom dplyr distinct
+#' @importFrom dplyr group_by_at
+#' @importFrom dplyr lead
+#' @importFrom dplyr summarize_at
+#' @importFrom dplyr sym
 #' @importFrom tibble as_tibble
 
 
@@ -197,9 +204,18 @@ calculate_cell_density_by_group = function(dataset, group_splits = NULL, pseudot
 
 
 #' @title mahalanobis_distance_to_landmark_group
-#' @description Calculates mahalanobis distance to a set of landmark cells
+#' @description Calculates mahalanobis distance to a set of landmark cells.
+#'   Every exit path returns the same two-column data.frame (cell.id, mahalanobis_distance)
+#'   so that results stay joinable back onto the input.
 #' @noRd
-mahalanobis_distance_to_landmark_group = function(dataset, features, reference_group_column, reference_group_name, referenceSelf = FALSE, sampleInternally = NULL, tol=1e-20,precalculated_mean = NULL,precalculated_cov = NULL,CELL_COUNT_THRESHOLD=50){ ## tol=1e-20
+mahalanobis_distance_to_landmark_group = function(dataset, features, reference_group_column, reference_group_name, referenceSelf = FALSE, CELL_COUNT_THRESHOLD=50){
+
+     if (!'cell.id' %in% colnames(dataset)){
+          stop('input data must have a cell.id column')
+     }
+
+     ## all NA exit paths share this shape and these column types (NA_real_, not logical NA)
+     NA_result = data.frame(cell.id = dataset$cell.id, mahalanobis_distance = rep(NA_real_, nrow(dataset)))
 
      if (referenceSelf == TRUE){
           REFERENCE_mahalanobis.input = dataset %>%
@@ -210,13 +226,10 @@ mahalanobis_distance_to_landmark_group = function(dataset, features, reference_g
                dplyr::filter(!!sym(reference_group_column) %in% reference_group_name) %>%
                ungroup() %>%
                dplyr::select(all_of(features))
-
-
-
      }
      if (is.numeric(CELL_COUNT_THRESHOLD) ) {
           if (nrow(REFERENCE_mahalanobis.input)<CELL_COUNT_THRESHOLD){
-               return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance=NA))
+               return(NA_result)
           }
      }
      cov_matrix <- cov(REFERENCE_mahalanobis.input)
@@ -227,48 +240,84 @@ mahalanobis_distance_to_landmark_group = function(dataset, features, reference_g
           dplyr::select(all_of(features))
      if (is.numeric(CELL_COUNT_THRESHOLD) ) {
           if (nrow(mahalanobis.input)<CELL_COUNT_THRESHOLD){
-               return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance=NA))
+               return(NA_result)
           }
      }
 
+     ## NB: no return() inside tryCatch -- tryCatch evaluates its expression in the calling
+     ## frame, so return() here would exit this function with a bare numeric and drop cell.id.
      mahalanobis_distance = tryCatch({
-          mahalanobis_distance <-  mahalanobis(mahalanobis.input, center, cov_matrix)
-          return(mahalanobis_distance)
+          mahalanobis(mahalanobis.input, center, cov_matrix)
      }, error = function(e) {
-          # message(unique(dd$feature))
-          # You can log the error message if needed
-          message(conditionMessage(e))
-          return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance=NA))
+          ## singular / collinear covariance for this bin -- surface it rather than only message()
+          warning(paste0('mahalanobis() failed for a pseudotime bin, returning NA: ', conditionMessage(e)), call. = FALSE)
+          rep(NA_real_, nrow(mahalanobis.input))
      })
 
-     # mahalanobis_distance <- mahalanobis(mahalanobis.input, center, cov_matrix, tol = tol)
-     return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance=mahalanobis_distance))
+     return(data.frame(cell.id = dataset$cell.id, mahalanobis_distance = mahalanobis_distance))
 }
 
 #' @title pseudotime_mapped_mahalanobis_analysis
-#' @description takes in "landmark" for landmark mapped analysis,  or "all"
+#' @description Pseudotime-mapped Mahalanobis aberrancy score. Cells are split into
+#'   pseudotime bins; within each bin a reference mean and covariance are computed and
+#'   every cell in that bin is scored against them.
+#' @param dataset data.frame with one row per cell. Must contain a unique \code{cell.id}
+#'   column, the pseudotime bin column, and all \code{features}.
+#' @param method \code{'landmark'} to use the reference/landmark group within each bin as
+#'   the reference, or \code{'all'} to use all cells in the bin as their own reference.
+#'   \code{'landmark_mapped'} is accepted as a backwards-compatible alias for
+#'   \code{'landmark'}. Defaults to \code{'landmark'}.
+#' @param pseudotime_bin_column Name of the column holding the pseudotime bin assignment.
+#' @param features Character vector of feature/marker columns to score on.
+#' @param reference_group_column Column identifying the reference group. Required when
+#'   \code{method = 'landmark'}; ignored when \code{method = 'all'}.
+#' @param reference_group_name Value(s) of \code{reference_group_column} marking reference cells.
+#' @param CELL_COUNT_THRESHOLD Bins with fewer than this many reference cells, or fewer than
+#'   this many cells in total, are returned as \code{NA}. Set to 0 to disable.
+#' @return A data.frame with columns \code{cell.id} and \code{mahalanobis_distance}, one row
+#'   per input cell, in the same row order as \code{dataset}. Join back on \code{cell.id}.
 #' @export
-pseudotime_mapped_mahalanobis_analysis = function(dataset, method = c('landmark_mapped','all'), pseudotime_bin_column='pseudotime_bins', features, reference_group_column=NULL, reference_group_name=NULL,CELL_COUNT_THRESHOLD=50){
-     dataset$'pseudotime_bins' = dataset[[pseudotime_bin_column]]
-     if (method == 'landmark'){
-          PM_mahaalanobis_results = dataset %>%
-               group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = FALSE,  tol=1e-20, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
-               bind_rows()
-     } else if (method == 'all'){
-          PM_mahaalanobis_results = dataset %>%
-               group_by(pseudotime_bins) %>%
-               group_map(~mahalanobis_distance_to_landmark_group(., features, reference_group_column, reference_group_name, referenceSelf = TRUE,  tol=1e-20, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
-               bind_rows()
+pseudotime_mapped_mahalanobis_analysis = function(dataset, method = c('landmark','landmark_mapped','all'), pseudotime_bin_column='pseudotime_bins', features, reference_group_column=NULL, reference_group_name=NULL,CELL_COUNT_THRESHOLD=50){
+     method <- match.arg(method)
+     referenceSelf = (method == 'all')
+
+     if (!'cell.id' %in% colnames(dataset)){
+          stop('input data must have a cell.id column')
      }
-     return(PM_mahaalanobis_results)
+     if (anyDuplicated(dataset$cell.id)){
+          stop('cell.id must be unique -- results are joined back on cell.id')
+     }
+     if (!referenceSelf && is.null(reference_group_column)){
+          stop("method = 'landmark' requires reference_group_column")
+     }
+
+     dataset$'pseudotime_bins' = dataset[[pseudotime_bin_column]]
+
+     ## group_modify (not group_map) so the grouping key is retained and the result is a
+     ## data.frame; results are then realigned to the input by cell.id, because grouped
+     ## operations return rows in sorted key order rather than input order.
+     PM_mahalanobis_results = dataset %>%
+          group_by(pseudotime_bins) %>%
+          group_modify(~mahalanobis_distance_to_landmark_group(.x, features, reference_group_column, reference_group_name, referenceSelf = referenceSelf, CELL_COUNT_THRESHOLD=CELL_COUNT_THRESHOLD)) %>%
+          ungroup() %>%
+          dplyr::select(cell.id, mahalanobis_distance)
+
+     PM_mahalanobis_results = PM_mahalanobis_results[match(dataset$cell.id, PM_mahalanobis_results$cell.id), , drop = FALSE]
+     PM_mahalanobis_results = as.data.frame(PM_mahalanobis_results)
+     rownames(PM_mahalanobis_results) = NULL
+     return(PM_mahalanobis_results)
 }
 
 
 
 ## column_to_normalize: name of column to normalize in dataset
 #' @title hafez_DBPN
-#' @description Performs Density based pseudotime normalization
+#' @description Performs Density based pseudotime normalization.
+#'   Cells are re-parameterised through the CDF of a kernel density estimate of
+#'   their own pseudotime, which equalises density along the axis. `bandwidth`
+#'   and `adjust.value` control the smoothing of that KDE and therefore how
+#'   completely the density is equalised: heavy smoothing under-corrects a
+#'   sharply peaked distribution.
 #' use the normalize_by_sample_column to specify the column name that contains the column identifier to calculate density distributions for each subject/sample of choice, then normalize the pseudotime by the density estimate
 #' @export
 hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column = NULL, dataset.subset_to_use = NULL ,column_to_normalize=NULL, bandwidth = 'nrd0', adjust.value = 1, RETURN_DENSITY_COORDINATES = FALSE, new_dbp_name='PSEUDOTIME_NORMALIZED'){
@@ -313,13 +362,18 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
      if (use_subset_of_cells == FALSE){
           message('normalizing on all cells')
 
-          density.res = density(dataset$PSEUDOTIME_TO_DBPN, from = myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+          density.res = density(dataset$PSEUDOTIME_TO_DBPN, from = myRange[1], to = myRange[2], n = density_bins, bw = bandwidth, adjust = adjust.value)
           density.df = data.frame(x = density.res$x, y  =density.res$y)
           density_df_01 = density.df %>%
                # dplyr::filter(x>=0 & x<=1) %>%
                dplyr::mutate(y_normalized = y/sum(y),
-                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), -0.01, .),
-                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+                      ## Bin i spans (x[i-1], x[i]]. The open ends were hardcoded to
+                      ## -0.01 / 1.01, which silently assumes pseudotime lies in [0,1]:
+                      ## on any other scale the final bin became an empty interval, the
+                      ## range-join dropped the top cell(s) and bind_cols() then failed
+                      ## with a recycling error. Derive both ends from the density grid.
+                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), x[1] - (x[2] - x[1]), .),
+                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), x[length(x)], .),
 
                       cumulative.sum = base::cumsum(y_normalized),
                       pseudotime_density_min = dplyr::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
@@ -350,7 +404,12 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           dataset= dataset %>%
                left_join(dataset.PST_ADJUSTMENT) %>%
                group_by(pseudotime_bins_density_based) %>%
-               mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
+               ## `from` must be the BIN's value range. scales::rescale() defaults
+               ## from = range(x), i.e. the observed cells in the bin, which stretches
+               ## whatever happens to be in a bin across the whole CDF interval and
+               ## maps single-cell bins to its midpoint. Negligible at the default
+               ## density_bins = 1024, but it grows as density_bins shrinks.
+               mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max)), from = c(unique(pseudotime_bin_01_min), unique(pseudotime_bin_01_max)) ))# %>%
 
           if (time_col_present == TRUE){
                dataset = dataset %>% left_join(time_df, by = 'cell.id')
@@ -367,7 +426,7 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
           if (!is.null(normalize_by_sample_column)){
 
                density.df = lapply(split(dataset.subset_to_use,dataset.subset_to_use[[normalize_by_sample_column]]), function(dd){
-                    density.res = density(dd$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+                    density.res = density(dd$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins, bw = bandwidth, adjust = adjust.value)
                     density.df = data.frame(x = density.res$x, y  =density.res$y) %>%
                          mutate(normalize_by_sample_column=unique(dd[[normalize_by_sample_column]]))
 
@@ -377,14 +436,19 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
 
 
           } else{
-               density.res = stats::density(dataset.subset_to_use$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins,adjust = adjust.value)
+               density.res = stats::density(dataset.subset_to_use$PSEUDOTIME_TO_DBPN, from =  myRange[1], to = myRange[2], n = density_bins, bw = bandwidth, adjust = adjust.value)
                density.df = data.frame(x = density.res$x, y  =density.res$y)
           }
 
           density_df_01 = density.df %>%
                dplyr::mutate(y_normalized = y/sum(y),
-                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), -0.01, .),
-                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), 1.01, .),
+                      ## Bin i spans (x[i-1], x[i]]. The open ends were hardcoded to
+                      ## -0.01 / 1.01, which silently assumes pseudotime lies in [0,1]:
+                      ## on any other scale the final bin became an empty interval, the
+                      ## range-join dropped the top cell(s) and bind_cols() then failed
+                      ## with a recycling error. Derive both ends from the density grid.
+                      pseudotime_bin_01_min =  dplyr::lag(x) %>% ifelse(is.na(.), x[1] - (x[2] - x[1]), .),
+                      pseudotime_bin_01_max =  c(x[-length(x)], NA)%>% ifelse(is.na(.), x[length(x)], .),
 
                       cumulative.sum = cumsum(y_normalized),
                       pseudotime_density_min = dplyr::lag(cumulative.sum) %>% ifelse(is.na(.), 0, .),
@@ -412,7 +476,12 @@ hafez_DBPN = function(dataset, density_bins = 1024, normalize_by_sample_column =
 
           dataset_FULL= dataset_FULL %>%
                group_by(pseudotime_bins_density_based) %>%
-               mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max) )))# %>%
+               ## `from` must be the BIN's value range. scales::rescale() defaults
+               ## from = range(x), i.e. the observed cells in the bin, which stretches
+               ## whatever happens to be in a bin across the whole CDF interval and
+               ## maps single-cell bins to its midpoint. Negligible at the default
+               ## density_bins = 1024, but it grows as density_bins shrinks.
+               mutate(!!sym(new_dbp_name) := scales::rescale(PSEUDOTIME_TO_DBPN, to = c(unique(pseudotime_density_min), unique(pseudotime_density_max)), from = c(unique(pseudotime_bin_01_min), unique(pseudotime_bin_01_max)) ))# %>%
 
           dataset_FULL = dataset_FULL[, !colnames(dataset_FULL) %in% c('x','y','y_normalized','pseudotime_bin_01_min','pseudotime_bin_01_max','cumulative.sum','pseudotime_density_min','pseudotime_density_max','pseudotime_bins_density_based') ] ## remove excess columns that users don't need to see
           if (time_col_present == TRUE){

@@ -6,7 +6,7 @@
 \usage{
 pseudotime_mapped_mahalanobis_analysis(
   dataset,
-  method = c("landmark_mapped", "all"),
+  method = c("landmark", "landmark_mapped", "all"),
   pseudotime_bin_column = "pseudotime_bins",
   features,
   reference_group_column = NULL,
@@ -14,6 +14,33 @@ pseudotime_mapped_mahalanobis_analysis(
   CELL_COUNT_THRESHOLD = 50
 )
 }
+\arguments{
+\item{dataset}{data.frame with one row per cell. Must contain a unique \code{cell.id}
+column, the pseudotime bin column, and all \code{features}.}
+
+\item{method}{\code{'landmark'} to use the reference/landmark group within each bin as
+the reference, or \code{'all'} to use all cells in the bin as their own reference.
+\code{'landmark_mapped'} is accepted as a backwards-compatible alias for
+\code{'landmark'}. Defaults to \code{'landmark'}.}
+
+\item{pseudotime_bin_column}{Name of the column holding the pseudotime bin assignment.}
+
+\item{features}{Character vector of feature/marker columns to score on.}
+
+\item{reference_group_column}{Column identifying the reference group. Required when
+\code{method = 'landmark'}; ignored when \code{method = 'all'}.}
+
+\item{reference_group_name}{Value(s) of \code{reference_group_column} marking reference cells.}
+
+\item{CELL_COUNT_THRESHOLD}{Bins with fewer than this many reference cells, or fewer than
+this many cells in total, are returned as \code{NA}. Set to 0 to disable.}
+}
+\value{
+A data.frame with columns \code{cell.id} and \code{mahalanobis_distance}, one row
+per input cell, in the same row order as \code{dataset}. Join back on \code{cell.id}.
+}
 \description{
-takes in "landmark" for landmark mapped analysis,  or "all"
+Pseudotime-mapped Mahalanobis aberrancy score. Cells are split into
+pseudotime bins; within each bin a reference mean and covariance are computed and
+every cell in that bin is scored against them.
 }

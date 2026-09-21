@@ -148,6 +148,14 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
 
      node.df = COMPUTE_TI_OUTPUT[['node.df']]
      SelPaths <- Tree_e2e[sapply(Tree_e2e, function(x){any(x[c(1, length(x))] == ROOT)})]
+     ## Only paths that START or END at ROOT are kept, so an interior ROOT
+     ## leaves SelPaths empty and bind_cols() below silently returns a 0x0
+     ## data frame. Fail loudly instead, and say what the valid roots are.
+     if (length(SelPaths) == 0) {
+          .eps <- unique(unlist(lapply(Tree_e2e, function(p) as.numeric(names(p))[c(1, length(p))])))
+          stop("ROOT (", ROOT, ") is not an endpoint of any end2end path. ",
+               "Valid endpoints are: ", paste(sort(.eps), collapse = ", "))
+     }
      SelPaths <- lapply(SelPaths, function(x){
           if (x[1] == ROOT) return(x) else return(rev(x))
      })
@@ -198,6 +206,11 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
 #' @export
 
 hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_id=NULL, return_pseudotime_only=TRUE,NumNodes=5,Lambda = 0.01, Mu = 0.01, nReps=30, ProbPoint = 1,MaxNumberOfIterations =30, branch_type = c('curve','tree','circle'),return_node_pos = FALSE, use_start_label=NULL, start_label_column_category = c(NULL), verbose =F){
+     ## branch_type defaults to the full choice vector; without match.arg() the
+     ## `if (branch_type == 'circle')` below sees a length-3 condition, which is
+     ## a hard error in R >= 4.2. match.arg() also gives partial matching and a
+     ## clear message for an invalid value.
+     branch_type <- match.arg(branch_type)
      START_TIME = Sys.time()
      FULL_DATA=FULL_DATA%>% ungroup()
      if (!is.null(LM_DATA)){
@@ -212,12 +225,15 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_i
 
           # LM data can be either a vector  of indexes or a dataframe
           if (is.vector(LM_DATA)) {
-               FULL_DATA_TRAIN = FULL_DATA[LM_DATA, ]
+               FULL_DATA_TRAIN = FULL_DATA[LM_DATA, , drop = FALSE]
           } else {
                ## if providing a pre-filtered training data
                FULL_DATA_TRAIN=LM_DATA %>% ungroup()
           }
-          if (nrow(LM_DATA) == 0){
+          ## check the RESOLVED training set, not LM_DATA: nrow() of an index
+          ## vector is NULL, so `if (nrow(LM_DATA) == 0)` was `if (logical(0))`
+          ## -- "argument is of length zero" -- on the documented vector path.
+          if (nrow(FULL_DATA_TRAIN) == 0){
                message('no landmarks found...check inputted index vector or dataframe. Returning NA')
                return(NA)
           }
@@ -301,10 +317,6 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_i
           #                                                                  drawAccuracyComplexity = FALSE, drawEnergy = FALSE)
 
 
-          ## closest node
-          CLOSEST_CELL_IDX = FULL_DATA_TRAIN %>% ungroup() %>%dplyr::select(any_of(features_for_start_cell_id)) %>% apply(.,1, mean) %>% which.min(.)
-          CLOSEST_CELL_ID = FULL_DATA_TRAIN$cell.id[CLOSEST_CELL_IDX]
-
           colnames(ELPIGRAPH_RES$node.df) = c(FEATURES, 'node','path1')
           node.pos= ELPIGRAPH_RES$node.df
 
@@ -313,11 +325,42 @@ hafez_TI = function(FULL_DATA, LM_DATA=NULL, FEATURES, features_for_start_cell_i
                my_start_label = FULL_DATA_TRAIN %>% dplyr::filter(!!sym(start_label_column_category[1]) == start_label_column_category[2]) %>% summarize_at(FEATURES, median)
                ELPIGRAPH_RES$node.df = ELPIGRAPH_RES$node.df %>% bind_rows(my_start_label)
           } else {
+               ## Pick the root from the cell with the lowest mean over
+               ## features_for_start_cell_id. This block used to run
+               ## unconditionally ABOVE the use_start_label branch; with the
+               ## default features_for_start_cell_id = NULL, any_of(NULL)
+               ## selects zero columns and CLOSEST_CELL_ID became character(0),
+               ## which then errored inside the filter() below.
+               if (is.null(features_for_start_cell_id)) {
+                    stop("no way to choose a root: supply `use_start_label` (with ",
+                         "`start_label_column_category`) or `features_for_start_cell_id`.")
+               }
+               missing_f <- setdiff(features_for_start_cell_id, colnames(FULL_DATA_TRAIN))
+               if (length(missing_f)) {
+                    stop("features_for_start_cell_id not found in the landmark data: ",
+                         paste(missing_f, collapse = ", "))
+               }
+               CLOSEST_CELL_IDX = FULL_DATA_TRAIN %>% ungroup() %>% dplyr::select(any_of(features_for_start_cell_id)) %>% apply(.,1, mean) %>% which.min(.)
+               CLOSEST_CELL_ID = FULL_DATA_TRAIN$cell.id[CLOSEST_CELL_IDX]
                ELPIGRAPH_RES$node.df = ELPIGRAPH_RES$node.df %>% bind_rows(FULL_DATA_TRAIN %>% dplyr::filter(cell.id == CLOSEST_CELL_ID) %>% dplyr::select(any_of(FEATURES)))
           }
 
 
-          START_NODE_ID = dist(ELPIGRAPH_RES$node.df %>% dplyr::select(any_of(FEATURES)),method = 'euclidean') %>% as.matrix() %>% .[1:nrow(.),ncol(.)] %>% .[.!=0] %>% .[which.min(.)] %>% names() %>% as.numeric()
+          ## The ROOT must be an END-POINT of an end2end path:
+          ## hafez_lineages_from_root() keeps only paths whose first or last
+          ## node equals ROOT, so an interior node selects no paths at all and
+          ## silently yields a 0x0 frame. Snap to the nearest ENDPOINT rather
+          ## than the nearest node of any kind. The appended start point is the
+          ## last row of node.df, hence the final column of the distance matrix.
+          endpoint_ids <- unique(unlist(lapply(ELPIGRAPH_RES$Tree_e2e,
+                                               function(p) as.numeric(names(p))[c(1, length(p))])))
+          endpoint_ids <- endpoint_ids[!is.na(endpoint_ids)]
+          if (length(endpoint_ids) == 0) {
+               stop("the fitted graph has no end2end paths, so no root endpoint can be chosen")
+          }
+          .dmat <- ELPIGRAPH_RES$node.df %>% dplyr::select(any_of(FEATURES)) %>%
+               dist(method = 'euclidean') %>% as.matrix()
+          START_NODE_ID <- endpoint_ids[which.min(.dmat[endpoint_ids, ncol(.dmat)])]
 
 
           ## select start node at S-phase
