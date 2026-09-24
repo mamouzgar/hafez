@@ -1,8 +1,6 @@
 
 
 #' @importFrom dtwclust tsclust
-#' @importFrom dtwclust partitional_control
-#' @importFrom proxy dist
 #' @importFrom stats cmdscale
 #' @importFrom tidyr gather
 #' @importFrom dynutils scale_minmax
@@ -39,6 +37,9 @@ hafez_tsvz_clust = function(ts_input,k=5, type='partitional', distance = 'dtw_ba
      ## only for partitional (which is what consumes @distmat), and skipped if
      ## the caller supplied their own `control`. Wrapped in tryCatch so that an
      ## exotic distance or an extra `...` argument that proxy::dist cannot take
+     ## (proxy and dtwclust are called namespaced -- NOT imported into the
+     ## NAMESPACE, because importFrom(proxy, dist) collides with stats::dist and
+     ## makes every package load warn)
      ## falls back to the original code path rather than failing.
      if (identical(type, 'partitional') && length(k) > 1 && is.null(dots$control)) {
           dm <- tryCatch({
