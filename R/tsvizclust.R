@@ -40,7 +40,12 @@ hafez_tsvz_clust = function(ts_input,k=5, type='partitional', distance = 'dtw_ba
           cl_dists = rowsum(dtw_clusters@cldist, (dtw_clusters@cluster))/ as.vector(table(dtw_clusters@cluster))
           cl_dists = data.frame(dist = cl_dists, clust= rownames(cl_dists))  %>%
                mutate(k_group= as.character(dtw_clusters@k))
-          dtw_clusters=list(optim_cluster_k=dtw_clusters)
+          ## `list(optim_cluster_k = x)` names the element with the literal
+          ## symbol "optim_cluster_k", but hafez_tsvz() looks it up by the VALUE
+          ## of optim_cluster_k (e.g. "5"), so the lookup returned NULL and the
+          ## next line hit `NULL@distmat`. This broke every scalar k, including
+          ## the default k = 5. setNames() uses the value as the name.
+          dtw_clusters=stats::setNames(list(dtw_clusters), optim_cluster_k)
      }
      return(list(cl_dists=cl_dists, dtw_clusters=dtw_clusters, optim_cluster_k=optim_cluster_k))
 }
