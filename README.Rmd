@@ -28,6 +28,55 @@ knitr::include_graphics("/Users/amouzgar/phd/Rpackages/hafez/other/F1_new_v2.jpg
 The name, Hafez, is inspired by the 14th century Persian poet whose collected works are regarded as some of the greatest achievements in Iranian literature. It is tradition to delve into the mysteries of fate and destiny through “faal-e-Hafez'' (divination) when faced with challenges, choice, questions, or for entertainment. Hafez’s poetry intends to reveal our fate or destiny during transitions in life, drawing parallels to the field of single-cell trajectory inference that maps cell fate and reveals cell state transitions. The word Hafez literally translates to "one who remembers" or "keeps in memory" - which is fitting considering cell fate mechanisms are often encoded earlier in differentiation and remembered as cells meet their destiny. Hafez often ponders the interconnectedness of human actions (experimental) and cosmic forces (computational) to interpret the world, so we pay homage to his legacy by naming our integrated experimental and computational method for interpretable landmark trajectory inference and systems modeling, Hafez.
 
 
+## dDR analysis: choosing the geometry
+
+`hafez_dDR()` performs density-based dimensionality reduction of pseudotime cell
+density distributions, with two interchangeable back-ends behind one interface.
+
+```r
+## default: exact 2-Wasserstein geometry -> Wasserstein PCA
+res <- hafez_dDR(cells = my_cells,
+                 pseudotime_column = "pseudotime_dbpn",
+                 groups = c("condition", "timepoint", "donor"))
+
+res$dDR             # dDR1, dDR2, the grouping columns, n_cells
+res$var_explained   # a real variance-explained figure
+
+## the previous behaviour, for comparison on identical input
+res_dtw <- hafez_dDR(cells = my_cells,
+                     pseudotime_column = "pseudotime_dbpn",
+                     groups = c("condition", "timepoint", "donor"),
+                     method = "dtw")
+```
+
+| | `method = "w2"` (default) | `method = "dtw"` |
+|---|---|---|
+| distance | 2-Wasserstein, exact | dynamic time warping |
+| embedding | Wasserstein PCA | classical MDS (`cmdscale`) |
+| is it a metric? | yes | no |
+| variance explained | reported | not defined |
+| n x n distance matrix | not needed | required |
+
+**Why `w2` is the default.** These are probability distributions on a 1-D pseudotime
+axis, not arbitrary time series, and for distributions on the line the quantile map is an
+*isometry* for the 2-Wasserstein distance. Euclidean geometry on quantile functions is
+therefore exactly Wasserstein geometry, which makes the embedding an ordinary PCA: exact,
+a true metric, no negative eigenvalues, and axes in pseudotime units. DTW, by contrast,
+is designed to be invariant to shifts along the x axis, which on a *normalised* pseudotime
+axis is usually the biological signal. On synthetic groups varying in both location and
+dispersion, `w2` puts location on dDR1 (r = 1.000) and dispersion on dDR2 (r = 0.999),
+while DTW leads with dispersion and demotes location to dDR2.
+
+`method = "dtw"` is fully supported and warns when `cmdscale` is absorbing a large
+negative-eigenvalue mass.
+
+**Clustering is off by default** (`k = NULL`). Supply `k` to opt in. The leading score is
+often more informative as a continuous distributional phenotype than as a partition.
+
+Both back-ends accept either raw `cells` (preferred: no kernel density estimate,
+bandwidth or grid) or a pre-computed `ts_input` curve table. `hafez_tsvz()` is unchanged
+and remains available as the original DTW-only interface.
+
 ## Installation: 
 There are a few options for using Hafez.
 
