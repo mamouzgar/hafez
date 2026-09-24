@@ -11,6 +11,34 @@
 ##################################################
 # TRAJECTORY INFERENCE FUNCTIONS ##
 ##################################################
+
+#' Pick the consensus graph out of an ElPiGraph result list
+#'
+#' When nReps > 1, ElPiGraph fits nReps bootstrap replicates (each to a random
+#' ProbPoint fraction of the data) and then appends ONE extra graph built from
+#' all of them -- the consensus. It is the LAST element and is tagged
+#' ReplicaID == 0 and ProbPoint == 1. When nReps == 1 no consensus is appended
+#' and the single replicate carries ReplicaID == 1.
+#'
+#' Taking [[1]] therefore returns a subsample fit rather than the consensus
+#' whenever nReps > 1, which is the default. Select on ReplicaID == 0 rather
+#' than on position, so this stays correct if the return order ever changes,
+#' and fall back to the last element if the tag is absent.
+#'
+#' @keywords internal
+#' @noRd
+epg_consensus <- function(EPG_LIST) {
+     if (is.null(EPG_LIST) || !length(EPG_LIST)) {
+          stop('empty ElPiGraph result: no graph to select')
+     }
+     rid <- vapply(EPG_LIST, function(g) {
+          v <- g$ReplicaID
+          if (is.null(v) || !length(v)) NA_real_ else as.numeric(v)[1]
+     }, numeric(1))
+     idx <- if (any(rid == 0, na.rm = TRUE)) which(rid == 0)[1] else length(EPG_LIST)
+     EPG_LIST[[idx]]
+}
+
 ## TI_CIRCLE
 #' @description TI_CIRCLE
 #' @keywords internal
@@ -36,14 +64,17 @@ hafez_TI_circle = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:10), LAB
           verbose = verbose
      )
 
-     PartStruct <- ElPiGraph.R::PartitionData(X = OOS_DATA, NodePositions = CircleEPG.Boot[[length(CircleEPG.Boot)]]$NodePositions)
+     ## same selection rule as hafez_TI_LINEAR_BRANCH; previously this function
+     ## used [[length()]] while that one used [[1]], so the two disagreed.
+     CIRCLE_EPG <- epg_consensus(CircleEPG.Boot)
+     PartStruct <- ElPiGraph.R::PartitionData(X = OOS_DATA, NodePositions = CIRCLE_EPG$NodePositions)
      ProjStruct <- ElPiGraph.R::project_point_onto_graph(
           X = OOS_DATA,
-          NodePositions = CircleEPG.Boot[[length(CircleEPG.Boot)]]$NodePositions,
-          Edges = CircleEPG.Boot[[length(CircleEPG.Boot)]]$Edges$Edges,
+          NodePositions = CIRCLE_EPG$NodePositions,
+          Edges = CIRCLE_EPG$Edges$Edges,
           Partition = PartStruct$Partition
      )
-     Circle_Graph <- ElPiGraph.R::ConstructGraph(CircleEPG.Boot[[length(CircleEPG.Boot)]])
+     Circle_Graph <- ElPiGraph.R::ConstructGraph(CIRCLE_EPG)
      Circle_e2e <- ElPiGraph.R::GetSubGraph(Net = Circle_Graph, Structure = 'circle', Circular = TRUE)
      Root <- 1
      SelPaths <- Circle_e2e[sapply(Circle_e2e, function(x){any(x[c(1, length(x))] == Root)})]
@@ -105,7 +136,13 @@ hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:1
           )
      }
 
-     node.df = TreeEPG[[1]]$NodePositions %>% data.frame() %>%
+     ## With the default nReps = 5, TreeEPG holds 5 bootstrap replicates plus the
+     ## consensus. Indexing [[1]] here returned replicate 1, fitted to a random
+     ## ProbPoint (default 0.6) fraction of the landmarks -- a different graph
+     ## every call, and not the one the bootstrap was run to produce.
+     TREE_EPG <- epg_consensus(TreeEPG)
+
+     node.df = TREE_EPG$NodePositions %>% data.frame() %>%
           mutate(node = paste0(1:nrow(.)), path1 = factor(node))
 
      if (is.null(CC_PHASE_COLUMN)) {
@@ -124,9 +161,9 @@ hafez_TI_LINEAR_BRANCH = function(LM_DATA, FULL_DATA, FEATURES = paste0('PC',1:1
                guides(fill = guide_legend(override.aes = list(size = 5)))
      }
 
-     Tree_Graph <- ElPiGraph.R::ConstructGraph(TreeEPG[[1]])
+     Tree_Graph <- ElPiGraph.R::ConstructGraph(TREE_EPG)
      Tree_e2e <- ElPiGraph.R::GetSubGraph(Net = Tree_Graph, Structure = 'end2end')
-     NodeLabs <- 1:nrow(TreeEPG[[1]]$NodePositions)
+     NodeLabs <- 1:nrow(TREE_EPG$NodePositions)
 
      return(list(TreeEPG = TreeEPG, Tree_e2e = Tree_e2e, Tree_Graph = Tree_Graph,
                  NodeLabs = NodeLabs, LM_DATA = LM_DATA, node.df = node.df, plot = p.lineages))
@@ -160,11 +197,15 @@ hafez_lineages_from_root = function(COMPUTE_TI_OUTPUT, OOS_DATA, FEATURES, ROOT,
           if (x[1] == ROOT) return(x) else return(rev(x))
      })
 
-     PartStruct <- ElPiGraph.R::PartitionData(X = OOS_DATA_features, NodePositions = TreeEPG[[1]]$NodePositions)
+     ## Must be the SAME graph that Tree_Graph / Tree_e2e / node.df were built
+     ## from in hafez_TI_LINEAR_BRANCH, otherwise the projection is done against
+     ## different node positions than the path structure it is indexed by.
+     TREE_EPG <- epg_consensus(TreeEPG)
+     PartStruct <- ElPiGraph.R::PartitionData(X = OOS_DATA_features, NodePositions = TREE_EPG$NodePositions)
      ProjStruct <- ElPiGraph.R::project_point_onto_graph(
           X = OOS_DATA_features,
-          NodePositions = TreeEPG[[1]]$NodePositions,
-          Edges = TreeEPG[[1]]$Edges$Edges,
+          NodePositions = TREE_EPG$NodePositions,
+          Edges = TREE_EPG$Edges$Edges,
           Partition = PartStruct$Partition
      )
 
