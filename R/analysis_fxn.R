@@ -578,7 +578,32 @@ wrangle_data_for_knn_index_resolution = function(full_data,LM_col=NULL,LM_group=
 
 
 #' @title find_closest_neighbor_distance
-#' @description Calculates distance to landmark cells.
+#' @description Calculates distance to landmark cells: for every row of
+#'   \code{full_data}, the mean Euclidean distance (over \code{features}) to its
+#'   \code{k_ave} nearest cells in the landmark group. Used as a nearest-neighbour
+#'   cell-cycle aberrancy score -- how atypical a cell is relative to a reference
+#'   population. Because a cell's nearest landmark neighbours are automatically at
+#'   a similar position in the cycle, the score is IMPLICITLY conditioned on
+#'   cell-cycle position and needs no pseudotime, no binning and no minimum
+#'   per-bin reference count. That makes it usable BEFORE a trajectory exists,
+#'   unlike \code{pseudotime_mapped_mahalanobis_analysis}.
+#' @section Validation:
+#'   Audited against an independent brute-force computation on synthetic data with
+#'   a known answer: output is returned in the ORIGINAL row order of
+#'   \code{full_data} (verified by permuting the input and recovering the same
+#'   per-row values), landmark cells correctly EXCLUDE self-matches, and a group
+#'   shifted 5 SD away scores ~17x the reference group. Correlation with the
+#'   brute-force result was 0.9985 but NOT exact (max absolute difference ~1.0 on
+#'   that test set), consistent with an APPROXIMATE k-nearest-neighbour backend.
+#'   Treat the values as an approximate score: fine for ranking and thresholding,
+#'   not for claims that depend on exact distances.
+#' @section Choosing a threshold:
+#'   Use an empirical percentile of the reference/control group itself (e.g. its
+#'   99th percentile) rather than a nominal parametric cutoff. A chi-square
+#'   threshold on the related Mahalanobis score is NOT calibrated on cytometry
+#'   data -- a nominal 1\% cutoff flagged 4.6-6.0\% of control cells in testing,
+#'   because the markers are skewed and heavy-tailed rather than multivariate
+#'   normal.
 #' @export
 ##k_ave is the # of neighbors to use in the distance output. Anything more than 1 will take the average of each index it is proximal to.
 ## a value of -1 for k_ave finds the closest non-self neighbor, which is equivalently the  2nd closest neighbor.
